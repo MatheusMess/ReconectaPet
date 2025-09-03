@@ -137,8 +137,8 @@
                 </ul>
             </div>
             <div class="botao" >
-                <button id="reso" class="btn-caso" >Caso Resolvido</button>
-                <button id="aban" class="btn-caso" >Abandonar Caso </button>
+                <button id="reso" class="btn-caso" >Aceitar</button>
+                <button id="aban" class="btn-caso" >Recusar</button>
             </div>
         </div>
     </div>

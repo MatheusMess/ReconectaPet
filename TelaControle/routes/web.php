@@ -48,3 +48,6 @@ Route::get('/cr', function () {
 Route::get('/ca', function () {
     return view('site.casosAbandonados');
 });
+Route::get('/ce', function () {
+    return view('site.casosEditados');
+});

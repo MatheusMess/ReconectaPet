@@ -29,7 +29,6 @@
         }
         
         
-        
         #detalhes{
             border-radius: 50px;
             width: 100%;
@@ -65,9 +64,12 @@
             margin-top: 20px;
         }
         #nome{
+            width: 100%;
             height: 20%;
-            align-self: flex-end;
+            justify-content: center;
+            align-self: center;
             margin-top: 10px;
+            padding: 125px; 
         }
         .div2{
             height: 100%;
@@ -115,21 +117,21 @@
     <div class="pai">
         <div id="img" class="white" style="border-radius: 50px">
             <div id="imgs">
-                <img src="https://adotar.com.br/upload/2023-04/animais_imagem979687.jpg?w=700&format=webp">
+                <img src="https://i.pinimg.com/474x/f2/9d/ba/f29dba2b270a670bc0f604692762cf91.jpg">
                 <img src="https://cruzarcachorro.com.br/imagens/produto/1/2853.jpg">
                 <img src="https://i.pinimg.com/736x/9c/67/38/9c6738bf74f94adf5ed0f9e4170cbf2d.jpg">
                 <img src="https://adnchocolate.com.ar/wp-content/uploads/como-son-las-hembras-labrador.webp">              
             </div>
-            <span id="nome" class="card-title">Spike</span>
+            <span id="nome" class="card-title">Qiqi</span>
         </div>
         <div class="div2" >
             <div id="detalhes" class="white card-content" style="width: 100%;">
                 <ul>
                     <li><b>Animal: </b>Cacchorro</li>
-                    <li><b>Raça:   </b>Labrador</li>
+                    <li><b>Raça:   </b>Pastor-Alemão</li>
                     <li><b>Tamanho:</b>Grande</li>
-                    <li><b>Sexo:   </b>Macho</li>
-                    <li><b>Cor:    </b>Marrom</li>
+                    <li><b>Sexo:   </b>Fêmea</li>
+                    <li><b>Cor:    </b>Cinza</li>
                     <li><b>Detalhes da aparência:</b></li>
                     <p>pelo marrom escuro quase preto, o focinho é mais claro que o pelo</p>
                     <li><b>Ultimo lugar visto:</b></li>
@@ -137,9 +139,27 @@
                 </ul>
             </div>
             <div class="botao" >
-                <button id="reso" class="btn-caso" >Caso Resolvido</button>
-                <button id="aban" class="btn-caso" >Abandonar Caso </button>
+                <button id="reso" class="btn-caso" >Aceitar</button>
+                <button id="aban" class="btn-caso" >Recusar </button>
             </div>
         </div>
     </div>
+    @php
+$animal = [
+    'id' => 123,
+    'tipo' => 'Gato',
+    'nome' => 'Mimi',
+    'raca' => 'Siamês',
+    'cor' => 'Branco',
+    'sexo' => 'Fêmea',
+    'tam' => 'Grande',
+    'imagem1' => 'https://i.pinimg.com/474x/f2/9d/ba/f29dba2b270a670bc0f604692762cf91.jpg',
+    'imagem2' => 'https://i.pinimg.com/474x/f2/9d/ba/f29dba2b270a670bc0f604692762cf91.jpg',
+    'imagem3' => 'https://i.pinimg.com/474x/f2/9d/ba/f29dba2b270a670bc0f604692762cf91.jpg',
+    'imagem4' => 'https://i.pinimg.com/474x/f2/9d/ba/f29dba2b270a670bc0f604692762cf91.jpg',
+    'aparencia' => 'Orelhas peludas, olhos azuis, parecido com um lobo',
+    'ultimoLV' => 'Rua aleatória, 123 - Bairro Exemplo',
+];
+@endphp
+    <x-detalhes :animal="$animal" :show-resolve-buttons="true" />
 @endsection
