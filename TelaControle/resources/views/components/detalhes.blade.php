@@ -1,67 +1,99 @@
-<!--
-    <div class="pai detalhes-pai">
-    <div id="img" aria-hidden="true">
-        <img src="{{ $animal['imagem1'] ?? asset('images/placeholder.png') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
-        <img src="{{ $animal['imagem2'] ?? asset('images/placeholder.png') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
-        <img src="{{ $animal['imagem3'] ?? asset('images/placeholder.png') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
-        <img src="{{ $animal['imagem4'] ?? asset('images/placeholder.png') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
+<div class="pai">
+    <div id="img" class="white" style="border-radius: 50px">
+        <div id="imgs">
+            <img src="{{ $animal['imagem1'] ?? asset('images/placeholder.png') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
+            <img src="{{ $animal['imagem2'] ?? asset('images/placeholder.png') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
+            <img src="{{ $animal['imagem3'] ?? asset('images/placeholder.png') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
+            <img src="{{ $animal['imagem4'] ?? asset('images/placeholder.png') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
+        </div>
+        <span id="nome" class="card-title">{{ $animal['nome']}}</span>
     </div>
-
-    <div class="div2">
-        <div id="detalhes">
-            <h2 id="nome">{{ $animal['nome'] ?? '—' }}</h2>
+    <!--
+    caso [dap] = 1
+    caso [dae] = 2
+    caso [dcr] = 3
+    caso [dca] = 4
+    caso [dce]  = 5
+    caso [dnae] = 6
+    caso [dnap] = 7
+    -->
+    <div class="div2" >
+        <div id="detalhes" class="white card-content" style="width: 100%;">
             <ul>
-                <li><strong>Tipo:</strong> {{ $animal['tipo'] ?? '—' }}</li>
-                <li><strong>Raça:</strong> {{ $animal['raca'] ?? '—' }}</li>
-                <li><strong>Cor:</strong> {{ $animal['cor'] ?? '—' }}</li>
-                <li><strong>Sexo:</strong> {{ $animal['sexo'] ?? '—' }}</li>
-                @if(!empty($animal['obs']))
-                    <li><strong>Observações:</strong> {!! $animal['obs'] !!}</li>
-                @endif
+                <li><b>Animal: </b>{{$animal['tipo']}}</li>
+                <li><b>Raça:   </b>{{$animal['raca']}}</li>
+                <li><b>Tamanho:</b>{{$animal['tam']}}</li>
+                <li><b>Sexo:   </b>{{$animal['sexo']}}</li>
+                <li><b>Cor:    </b>{{$animal['cor']}}</li>
+                <li><b>Detalhes da aparência:</b></li>
+                <p>{{$animal['aparencia']}}</p>
+                @switch($caso)
+                    @case(1)
+                        <li><b>Ultimo lugar visto:</b></li>
+                        <p>{{$animal['LugarV']}}</p>
+                        @break
+                    @case(2)
+                        <li><b>Lugar encontrado:</b></li>
+                        <p>{{$animal['LugarE']}}</p>
+                        @break
+                    @case(3)
+                        <li><b>Ultimo lugar visto:</b></li>
+                        <p>{{$animal['LugarV']}}</p>
+                        <li><b>Lugar encontrado:</b></li>
+                        <p>{{$animal['LugarE']}}</p>
+                        @break
+                    @case(4)
+                        <li><b>Ultimo lugar visto:</b></li>
+                        <p>{{$animal['LugarV']}}</p>
+                        <li><b>Lugar encontrado:</b></li>
+                        <p>{{$animal['LugarE']}}</p>
+                        @break
+                    @case(5)
+                        <li><b>Ultimo lugar visto:</b></li>
+                        <p>{{$animal['LugarV']}}</p>
+                        <li><b>Lugar encontrado:</b></li>
+                        <p>{{$animal['LugarE']}}</p>
+                        @break
+                    @case(6)
+                        <li><b>Lugar encontrado:</b></li>
+                        <p>{{$animal['LugarE']}}</p>
+                        @break
+                    @case(7)
+                        <li><b>Ultimo lugar visto:</b></li>
+                        <p>{{$animal['LugarV']}}</p>
+                        @break
+                    @default
+                @endswitch
             </ul>
         </div>
-
-        <div class="botoes-pai">
-            @if($showResolveButtons)
-                <form method="POST" action="{{ $animal['resolvido_url'] ?? '#' }}" class="botao" style="width:100%;">
-                    @csrf
-                    <button id="reso" class="btn-caso" >Aceitar</button>
-                    <button id="aban" class="btn-caso" >Recusar </button>
-                </form>
-            @endif
-        </div>
-    </div>
-</div>-->
-    <div class="pai">
-        <div id="img" class="white" style="border-radius: 50px">
-            <div id="imgs">
-                <img src="{{ $animal['imagem1'] ?? asset('images/placeholder.png') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
-                <img src="{{ $animal['imagem2'] ?? asset('images/placeholder.png') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
-                <img src="{{ $animal['imagem3'] ?? asset('images/placeholder.png') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
-                <img src="{{ $animal['imagem4'] ?? asset('images/placeholder.png') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
-            </div>
-            <span id="nome" class="card-title">{{ $animal['nome']}}</span>
-        </div>
-        <div class="div2" >
-            <div id="detalhes" class="white card-content" style="width: 100%;">
-                <ul>
-                    <li><b>Animal: </b>{{$animal['tipo']}}</li>
-                    <li><b>Raça:   </b>{{$animal['raca']}}</li>
-                    <li><b>Tamanho:</b>{{$animal['tam']}}</li>
-                    <li><b>Sexo:   </b>{{$animal['sexo']}}</li>
-                    <li><b>Cor:    </b>{{$animal['cor']}}</li>
-                    <li><b>Detalhes da aparência:</b></li>
-                    <p>{{$animal['aparencia']}}</p>
-                    <li><b>Ultimo lugar visto:</b></li>
-                    <p>{{$animal['ultimoLV']}}</p>
-                </ul>
-            </div>
-            <div class="botao" >
+        <div class="botao" >
+            @if($aceitar)
                 <button id="reso" class="btn-caso" >Aceitar</button>
-                <button id="aban" class="btn-caso" >Recusar </button>
-            </div>
+            @endif
+
+            @if($recusar)
+                <button id="aban" class="btn-caso" >Recusar</button>
+            @endif
+            
+            @if($resolvido)
+                <button id="reso" class="btn-caso" >Resolvido</button>
+            @endif
+
+            @if($abandonar)
+                <button id="aban" class="btn-caso" >Abandonar</button>
+            @endif
+
+            @if($rcr)
+                <button id="aban" class="btn-caso" >Reativar Caso</button>
+            @endif
+
+            @if($rca)
+                <button id="reso" class="btn-caso" >Reativar Caso</button>
+            @endif
+            
         </div>
     </div>
+</div>
 
 
 <style>
@@ -124,7 +156,7 @@
         
     }
     li{
-        margin-top: 20px;
+        margin-top: 15px;
     }
     #nome{
         width: 100%;

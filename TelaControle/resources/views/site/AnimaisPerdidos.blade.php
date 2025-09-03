@@ -90,7 +90,7 @@
                 <div class="card-image">
                     <img height="200px"  src="{{ $animal['imagem'] }}">
                     <span class="card-title"><b>{{ $animal['nome'] }}</b></span>
-                    <a class="btn-floating halfway-fab waves-effect waves-light red" href="http://reconectpet.test/dap"><i class="material-icons background-color: cyan">visibility</i></a>
+                    <a class="btn-floating halfway-fab waves-effect waves-light red" href="dap"><i class="material-icons background-color: cyan">visibility</i></a>
                 </div>
                 <div class="card-content">
                     <ul class="info">

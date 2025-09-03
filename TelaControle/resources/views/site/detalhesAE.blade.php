@@ -125,7 +125,7 @@
         <div class="div2" >
             <div id="detalhes" class="white card-content" style="width: 100%;">
                 <ul>
-                    <li><b>Animal: </b>Cacchorro</li>
+                    <li><b>Animal: </b>Cachorro</li>
                     <li><b>Raça:   </b>Labrador</li>
                     <li><b>Tamanho:</b>Grande</li>
                     <li><b>Sexo:   </b>Macho</li>

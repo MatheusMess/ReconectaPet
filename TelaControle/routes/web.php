@@ -24,6 +24,12 @@ Route::get('/dap', function () {
 Route::get('/dae', function () {
     return view('site.detalhesAE');
 });
+Route::get('/dnap', function () {
+    return view('site.detalhesNAP');
+});
+Route::get('/dnae', function () {
+    return view('site.detalhesNAE');
+});
 Route::get('/dcr', function () {
     return view('site.detalhesCR');
 });

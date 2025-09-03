@@ -2,19 +2,7 @@
     // calcula base de detalhes a partir do caminho atual transformando o primeiro segmento:
     // se o segmento tiver 2 ou menos chars -> prefixa 'd' (ex: 'cr' -> 'dcr')
     // se tiver >2 chars -> substitui o primeiro char por 'd' (ex: 'nae' -> 'dae')
-    $link = request()->segments();
-    if (count($link) > 0) {
-        $primeiro = $link[0];
-        if (mb_strlen($primeiro) <= 2) {
-            $novoPrimeiro = 'd' . $primeiro;
-        } else {
-            $novoPrimeiro = 'd' . mb_substr($primeiro, 1);
-        }
-        $link[0] = $novoPrimeiro;
-        $urlDetalhes = url(implode('/', $link));
-    } else {
         $urlDetalhes = url('d' . trim(request()->path(), '/'));
-    }
 @endphp
 
 @foreach($animais as $animal)
