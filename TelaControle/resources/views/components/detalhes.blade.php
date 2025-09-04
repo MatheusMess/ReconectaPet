@@ -6,7 +6,13 @@
             <img src="{{ $animal['imagem3'] ?? asset('images/placeholder.png') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
             <img src="{{ $animal['imagem4'] ?? asset('images/placeholder.png') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
         </div>
-        <span id="nome" class="card-title">{{ $animal['nome']}}</span>
+        @if(!$animal['nome'])
+            <span id="snome" class="center">(Sem coleira)</span>
+        @endif
+        @if($animal['nome'])
+            <span id="nome" class="center">{{ $animal['nome']}}</span>
+        @endif
+        
     </div>
     <!--
     caso [dap] = 1
@@ -161,10 +167,14 @@
     #nome{
         width: 100%;
         height: 20%;
-        justify-content: center;
-        align-self: center;
         margin-top: 10px;
-        padding: 125px; 
+        padding: 30px;
+    }
+    #snome{
+        width: 100%;
+        height: 20%;
+        font-size: 30px; 
+        padding: 30px;
     }
     .div2{
         height: 100%;

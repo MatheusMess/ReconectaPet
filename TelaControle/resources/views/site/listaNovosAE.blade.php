@@ -9,7 +9,7 @@
                 $animais = [
                     [
                         'tipo' => 'Gato',
-                        'nome' => 'Mimi',
+                        'nome' => '(sem coleira)',
                         'raca' => 'Siamês',
                         'cor' => 'Branco e cinza',
                         'sexo' => 'Fêmea',
@@ -17,7 +17,7 @@
                     ],
                     [
                         'tipo' => 'Cachorro',
-                        'nome' => 'Rex',
+                        'nome' => 'Max',
                         'raca' => 'Labrador',
                         'cor' => 'Preto',
                         'sexo' => 'Macho',
@@ -25,7 +25,7 @@
                     ],
                     [
                         'tipo' => 'Gato',
-                        'nome' => 'Bolinha',
+                        'nome' => '(sem coleteira)',
                         'raca' => 'Persa',
                         'cor' => 'Cinza',
                         'sexo' => 'Macho',

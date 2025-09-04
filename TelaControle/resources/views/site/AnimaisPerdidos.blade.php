@@ -1,7 +1,6 @@
 @extends('site.layout')
 @section('title','Animais Perdidos')
 @section('conteudo')
-    {{--@component('components.navegacao')--}}
     <style>
         img{
             width: 150px;
@@ -35,7 +34,7 @@
             }
         }
         .card{
-            height: 125%;
+            height: 115%;
             margin: 10px;
             li{
                 margin-top: 10px;
@@ -45,8 +44,11 @@
                 justify-content: space-between;
             }
         }
+        #teste{
+            color: black;
+        }
     </style>
-    {{-- @endcomponent--}}
+    <h3 class="center">Animais Perdidos</h3>
     <div class="row container">
         @php
             $animais = [
@@ -68,28 +70,66 @@
                 ],
                 [
                     'tipo' => 'Cacchorro',
-                    'nome' => 'Alfa',
-                    'raca' => 'Fazendeiro',
+                    'nome' => 'Laika',
+                    'raca' => 'Vira-Lata',
                     'cor' => 'Preto/Branco',
-                    'sexo' => 'Macho',
+                    'sexo' => 'Fêmea',
                     'imagem' => 'https://redacao.labmidia.com.br/wp-content/uploads/2024/09/raca-de-cachorro-para-fazenda-1.jpg',
                 ],
                 [
                     'tipo' => 'Cachorro',
-                    'nome' => 'Laika',
-                    'raca' => 'Labrador',
-                    'cor' => 'Branco',
-                    'sexo' => 'Fêmea',
-                    'imagem' => 'https://cdn.jornaldaparaiba.com.br/wp-content/uploads/2024/01/racas-de-cachorro-labrador-retriever.jpg?xid=650493',
+                    'nome' => 'Shicha',
+                    'raca' => 'dachshund',
+                    'cor' => 'Preto',
+                    'sexo' => 'Macho',
+                    'imagem' => 'https://www.adoropets.com.br/wp-content/uploads/2018/04/dachshund-grama.jpg',
+                ],
+                [
+                    'tipo' => ' ',
+                    'nome' => 'Teste',
+                    'raca' => ' ',
+                    'cor' => ' ',
+                    'sexo' => ' ',
+                    'imagem' => 'https://wallpapers.com/images/featured/tudo-branco-f9i0iegpvjn3oxtd.jpg',
+                ],[
+                    'tipo' => ' ',
+                    'nome' => 'Teste',
+                    'raca' => ' ',
+                    'cor' => ' ',
+                    'sexo' => ' ',
+                    'imagem' => 'https://wallpapers.com/images/featured/tudo-branco-f9i0iegpvjn3oxtd.jpg',
+                ],[
+                    'tipo' => ' ',
+                    'nome' => 'Teste',
+                    'raca' => ' ',
+                    'cor' => ' ',
+                    'sexo' => ' ',
+                    'imagem' => 'https://wallpapers.com/images/featured/tudo-branco-f9i0iegpvjn3oxtd.jpg',
+                ],[
+                    'tipo' => ' ',
+                    'nome' => 'Teste',
+                    'raca' => ' ',
+                    'cor' => ' ',
+                    'sexo' => ' ',
+                    'imagem' => 'https://wallpapers.com/images/featured/tudo-branco-f9i0iegpvjn3oxtd.jpg',
                 ],
             ];
         @endphp
         @foreach($animais as $animal)
-        <div class="col s12 m3" style="height: 300px" >
+        <div class="col s12 m3" style="height: 300px; margin-bottom: 80px;" >
             <div class="card">
                 <div class="card-image">
                     <img height="200px"  src="{{ $animal['imagem'] }}">
-                    <span class="card-title"><b>{{ $animal['nome'] }}</b></span>
+                    @if(!$animal['nome'])
+                        <span style="font-size:20px;" class="card-title"><b>(Sem coleira)</b></span>
+                    @endif
+                    @if($animal['nome']=="Teste")
+                        <span id="teste"class="card-title"><b><b>{{ $animal['nome'] }}</b></b></span>
+                        @else
+                        @if($animal['nome'])
+                            <span class="card-title"><b>{{ $animal['nome'] }}</b></span>
+                        @endif
+                    @endif
                     <a class="btn-floating halfway-fab waves-effect waves-light red" href="dap"><i class="material-icons background-color: cyan">visibility</i></a>
                 </div>
                 <div class="card-content">
