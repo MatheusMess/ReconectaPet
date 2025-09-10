@@ -25,7 +25,7 @@
                     ],
                     [
                         'tipo' => 'Gato',
-                        'nome' => '(sem coleteira)',
+                        'nome' => '(sem coleira)',
                         'raca' => 'Persa',
                         'cor' => 'Cinza',
                         'sexo' => 'Macho',

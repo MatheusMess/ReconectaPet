@@ -36,6 +36,9 @@ Route::get('/dcr', function () {
 Route::get('/dca', function () {
     return view('site.detalhesCA');
 });
+Route::get('/dce', function () {
+    return view('site.detalhesCE');
+});
 
 
 
