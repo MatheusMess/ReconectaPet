@@ -34,7 +34,7 @@ class Detalhes extends Component
     caso [dae] = 2
     caso [dcr] = 3
     caso [dca] = 4
-    caso [dce]  = 5
+    caso [dce]  = 5ad
     caso [dnae] = 6
     caso [dnap] = 7
     */

@@ -42,8 +42,8 @@
             <div id="nav"class="nav-wrapper cyan accent-2">
             <a href="#" class="brand-logo center"><span class="black-text">Reconecta Pet</span> </a>
             <ul id="nav-mobile" class="right hide-on-med-and-down">
-                <li><a href="http://reconectpet.test/" class="black-text">Início</a></li>
-                <li><a href="http://reconectpet.test/ap" class="black-text">Animais Perdidos</a></li>
+                <li><a href="http://reconectapet.test/TelaControle/public/" class="black-text">Início</a></li>
+                <li><a href="ap" class="black-text">Animais Perdidos</a></li>
                 <li><a href="" class="black-text">Animais Encontrados</a></li>
                 <li><a href="cr" class="black-text">Casos Resolvidos</a></li>
                 <li><a href="ca" class="black-text">Casos Abandonados</a></li>
