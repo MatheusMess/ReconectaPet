@@ -17,13 +17,13 @@
                     <li><strong>Cor:</strong> {{ $animal['cor'] }}</li>
                     <li><strong>Sexo:</strong> {{ $animal['sexo'] }}</li>
                 </ul>
-                <div class="d-flex justify-content-between">
+                <div id="btns" class="d-flex justify-content-between">
                     
-                    <a href="{{ $urlDetalhes }}" class="btn btn-info">Ver detalhes</a>
+                    <a id="det" href="{{ $urlDetalhes }}" class="btn btn-info">Ver detalhes</a>
                     
                     @if($showActions)
-                        <button class="btn btn-accept" data-id="{{ $animal['id'] ?? '' }}">Aceitar</button>
-                        <button class="btn btn-reject" data-id="{{ $animal['id'] ?? '' }}">Recusar</button>
+                        <button id="ace" class="btn btn-accept " data-id="{{ $animal['id'] ?? '' }}">Aceitar</button>
+                        <button id="rej" class="btn btn-reject" data-id="{{ $animal['id'] ?? '' }}">Recusar</button>
                     @endif
                 </div>
             </div>
@@ -63,8 +63,29 @@
             margin-bottom: 20px;
         }
     }
-    #animal{
-        
-        
+    #btnsbutton{
+        button{
+        background-color: rgb(16, 196, 228);}
+    }
+    #det{
+        background-color: rgb(16, 196, 228);
+    }
+    #det:hover{
+        background-color: gold;
+        cursor: pointer;
+    }  
+    #ace{
+        background-color: rgb(16, 196, 228);
+    }
+    #ace:hover{
+        background:rgba(0, 128, 0);
+        cursor: pointer;
+    }  
+    #rej{
+        background-color: rgb(16, 196, 228);
+    }
+    #rej:hover{
+        background:rgb(230, 38, 38);
+        cursor: pointer;
     }
 </style>

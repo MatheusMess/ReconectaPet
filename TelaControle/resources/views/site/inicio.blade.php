@@ -16,7 +16,7 @@
         }
         .opcao{
             position: relative;
-            background-color: cyan;
+            background-color: rgb(16, 196, 228);
             width: 220px;
             height: 220px;
             border-radius: 30px;

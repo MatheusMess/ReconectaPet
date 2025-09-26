@@ -187,7 +187,7 @@
     /* container reduzido e responsivo */
     .pai{
         margin: 4%;
-        background-color: aqua;
+        background-color: rgb(16, 196, 228);
         width: 1050px;
         height: 650px;
         align-self: center;
@@ -464,7 +464,7 @@
     
     .pai{
         margin: 4%;
-        background-color: aqua;
+        background-color: rgb(16, 196, 228);
         width: 1050px;
         height: 650px;
         align-self: center;
@@ -552,10 +552,10 @@
         gap: 20px; 
     }
     #reso{
-        background:rgba(0, 128, 0, 0.5);
+        background:rgb(31, 151, 31);
     }
     #aban{
-        background:rgba(255, 0, 0, 0.75);
+        background:rgb(206, 39, 39);
     }
     #reso:hover{
         background: gold;

@@ -10,7 +10,7 @@
                 
             }
             body{
-                background-color: rgb(0, 170, 170);
+                background-color: rgb(13, 147, 170);
             }
             .nav{
                 width: 100%;
@@ -31,15 +31,16 @@
             }
             #nav{
                 width: 100%;
+                background-color: rgb(16, 196, 228);
             }
-        
-        </style>
+            </style>
+            <!-- background-color: deepskyblue; -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     </head>
     <body >
         <nav class="nav">
-            <div id="nav"class="nav-wrapper cyan accent-2">
+            <div id="nav"class="nav-wrapper accent-2">
             <a href="#" class="brand-logo center"><span class="black-text">Reconecta Pet</span> </a>
             <ul id="nav-mobile" class="right hide-on-med-and-down">
                 <li><a href="http://reconectapet.test/TelaControle/public/" class="black-text">Início</a></li>
