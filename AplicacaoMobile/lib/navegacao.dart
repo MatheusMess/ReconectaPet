@@ -3,7 +3,6 @@ import 'tela_login.dart';
 import 'tela_criar_conta.dart';
 import 'tela_principal.dart';
 import 'tela_cadastro_animal.dart';
-<<<<<<< HEAD
 import 'tela_apresentacao.dart';
 
 class Navegacao {
@@ -15,10 +14,6 @@ class Navegacao {
     );
   }
 
-=======
-
-class Navegacao {
->>>>>>> f7ca8a5306a1afee2ed8ba2e57e75633d517d34c
   // Vai para a tela de login
   static void irParaLogin(BuildContext context) {
     Navigator.pushReplacement(
@@ -35,11 +30,7 @@ class Navegacao {
     );
   }
 
-<<<<<<< HEAD
   // Vai para a tela principal
-=======
-  // Vai para a tela principal (lista de animais perdidos)
->>>>>>> f7ca8a5306a1afee2ed8ba2e57e75633d517d34c
   static void irParaTelaPrincipal(BuildContext context) {
     Navigator.pushReplacement(
       context,
