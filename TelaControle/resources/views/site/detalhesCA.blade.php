@@ -149,7 +149,7 @@
                     <li><b>Sexo:   </b>Fêmea</li>
                     <li><b>Cor:    </b>Tigrado Cinza</li>
                     <li><b>Detalhes da aparência:</b></li>
-                    <p>Tem olhos dourados e na parte do pescoço o pelo é branco</p>
+                    <p>Tem olhos amarelos quase verde e na parte do pescoço o pelo é branco</p>
                     <li><b>Ultimo lugar visto:</b></li>
                     <p>R. 30 de Fevereiro</p>
                 </ul>

@@ -38,7 +38,10 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_launcher_icons: ^0.14.4
   image_picker: ^1.2.0
+<<<<<<< HEAD
   introduction_screen: ^3.1.8
+=======
+>>>>>>> f7ca8a5306a1afee2ed8ba2e57e75633d517d34c
 
 dev_dependencies:
   flutter_test:

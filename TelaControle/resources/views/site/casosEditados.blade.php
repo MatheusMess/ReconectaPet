@@ -1,7 +1,9 @@
+
 @extends('site.layout')
-@section('title','Animais Perdidos')
+@section('title','Lista')
 @section('conteudo')
-    <style>
+        <h2 class="mb-4">Casos Editados</h2>
+        <style>
         img{
             width: 150px;
             height: 150px;
@@ -33,8 +35,11 @@
                 margin-bottom: 20px;
             }
         }
+        #ic:hover{
+            background-color: gold;
+        }
         .card{
-            height: 115%;
+            height: 110%;
             margin: 10px;
             li{
                 margin-top: 10px;
@@ -48,65 +53,76 @@
             color: black;
         }
     </style>
-    <h3 class="center">Animais Perdidos</h3>
+    {{-- @endcomponent--}}
     <div class="row container">
         @php
             $animais = [
                 [
-                    'tipo' => 'Gato',
-                    'nome' => 'Lua',
-                    'raca' => 'Frajola',
-                    'cor' => 'Branco e Preto',
+                    'tipo' => 'Cachorro',
+                    'situacao' => 'Perdido',
+                    'nome' => 'Luna',
+                    'raca' => 'Akbash',
+                    'cor' => 'Branco',
                     'sexo' => 'Fêmea',
-                    'imagem' => 'https://cdn.pixabay.com/photo/2020/04/27/23/52/black-cat-5102116_1280.jpg',
+                    'imagem' => 'https://cdn.pixabay.com/photo/2018/12/09/14/58/dog-3865029_1280.jpg',
                 ],
                 [
                     'tipo' => 'Cachorro',
-                    'nome' => 'Spike',
+                    'situacao' => 'Encontrado',
+                    'nome' => 'Max',
                     'raca' => 'Labrador',
-                    'cor' => 'Marrom',
-                    'sexo' => 'Macho',
-                    'imagem' => 'https://adotar.com.br/upload/2023-04/animais_imagem979687.jpg?w=700&format=webp',
-                ],
-                [
-                    'tipo' => 'Cacchorro',
-                    'nome' => 'Laika',
-                    'raca' => 'Vira-Lata',
-                    'cor' => 'Preto/Branco',
-                    'sexo' => 'Fêmea',
-                    'imagem' => 'https://redacao.labmidia.com.br/wp-content/uploads/2024/09/raca-de-cachorro-para-fazenda-1.jpg',
-                ],
-                [
-                    'tipo' => 'Cachorro',
-                    'nome' => 'Shicha',
-                    'raca' => 'dachshund',
                     'cor' => 'Preto',
                     'sexo' => 'Macho',
-                    'imagem' => 'https://www.adoropets.com.br/wp-content/uploads/2018/04/dachshund-grama.jpg',
+                    'imagem' => 'https://cdn.los-animales.org/fotos/419836998_7902153-filhote-de-labrador-preto.jpg',
+                ],
+                [
+                    'tipo' => 'Cachorro',
+                    'situacao' => 'Perdido',
+                    'nome' => 'Zeca',
+                    'raca' => 'Beagle',
+                    'cor' => 'Tricolor',
+                    'sexo' => 'Macho',
+                    'imagem' => 'https://love.doghero.com.br/wp-content/uploads/2016/10/Beagle-6-1024x768.jpg',
+                ],
+                [
+                    'tipo' => 'Cachorro',
+                    'situacao' => 'Encontrado',
+                    'nome' => '',
+                    'raca' => 'Labrador',
+                    'cor' => 'Branco',
+                    'sexo' => 'Fêmea',
+                    'imagem' => 'https://cdn.jornaldaparaiba.com.br/wp-content/uploads/2024/01/racas-de-cachorro-labrador-retriever.jpg?xid=650493',
                 ],
                 [
                     'tipo' => ' ',
+                    'situacao' => ' ',
                     'nome' => 'Teste',
                     'raca' => ' ',
                     'cor' => ' ',
                     'sexo' => ' ',
                     'imagem' => 'https://wallpapers.com/images/featured/tudo-branco-f9i0iegpvjn3oxtd.jpg',
-                ],[
+                ],
+                [
                     'tipo' => ' ',
+                    'situacao' => ' ',
                     'nome' => 'Teste',
                     'raca' => ' ',
                     'cor' => ' ',
                     'sexo' => ' ',
                     'imagem' => 'https://wallpapers.com/images/featured/tudo-branco-f9i0iegpvjn3oxtd.jpg',
-                ],[
+                ],
+                [
                     'tipo' => ' ',
+                    'situacao' => ' ',
                     'nome' => 'Teste',
                     'raca' => ' ',
                     'cor' => ' ',
                     'sexo' => ' ',
                     'imagem' => 'https://wallpapers.com/images/featured/tudo-branco-f9i0iegpvjn3oxtd.jpg',
-                ],[
+                ],
+                [
                     'tipo' => ' ',
+                    'situacao' => ' ',
                     'nome' => 'Teste',
                     'raca' => ' ',
                     'cor' => ' ',
@@ -116,10 +132,11 @@
             ];
         @endphp
         @foreach($animais as $animal)
-        <div class="col s12 m3" style="height: 300px; margin-bottom: 80px;" >
+        <div class="col s12 m3" style="height: 300px; margin-bottom: 50px;" >
             <div class="card">
                 <div class="card-image">
-                    <img height="200px"  src="{{ $animal['imagem'] }}">
+                    <img height="175px"  src="{{ $animal['imagem'] }}">
+                    
                     @if(!$animal['nome'])
                         <span style="font-size:20px;" class="card-title"><b>(Sem coleira)</b></span>
                     @endif
@@ -130,18 +147,18 @@
                             <span class="card-title"><b>{{ $animal['nome'] }}</b></span>
                         @endif
                     @endif
-                    <a class="btn-floating halfway-fab waves-effect waves-light red" href="dap"><i class="material-icons background-color: cyan">visibility</i></a>
+                    <a id="ic" class="btn-floating halfway-fab" href="dce"><i id="ic" class="material-icons cyan">visibility</i></a>
                 </div>
                 <div class="card-content">
                     <ul class="info">
+                        <li><b>Situação: </b>{{ $animal['situacao'] }}</li>
                         <li><b>Animal: </b>{{ $animal['tipo'] }}</li>
-                        <li><b>Raça:   </b>{{ $animal['raca'] }}</li>
                         <li><b>Sexo:   </b>{{ $animal['sexo'] }}</li>
-                        <li><b>Cor:    </b>{{ $animal['cor'] }}</li>
                     </ul>
                 </div>
             </div>
         </div>
         @endforeach
     </div>
+
 @endsection

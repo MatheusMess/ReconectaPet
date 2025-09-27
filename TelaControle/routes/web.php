@@ -24,11 +24,20 @@ Route::get('/dap', function () {
 Route::get('/dae', function () {
     return view('site.detalhesAE');
 });
+Route::get('/dnap', function () {
+    return view('site.detalhesNAP');
+});
+Route::get('/dnae', function () {
+    return view('site.detalhesNAE');
+});
 Route::get('/dcr', function () {
     return view('site.detalhesCR');
 });
 Route::get('/dca', function () {
     return view('site.detalhesCA');
+});
+Route::get('/dce', function () {
+    return view('site.detalhesCE');
 });
 
 
@@ -47,4 +56,7 @@ Route::get('/cr', function () {
 });
 Route::get('/ca', function () {
     return view('site.casosAbandonados');
+});
+Route::get('/ce', function () {
+    return view('site.casosEditados');
 });

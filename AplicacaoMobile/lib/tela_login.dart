@@ -126,7 +126,11 @@ class TelaLogin extends StatelessWidget {
             ),
           ),
 
+<<<<<<< HEAD
           // Cachorro sempre embaixo
+=======
+          // Cachorro
+>>>>>>> f7ca8a5306a1afee2ed8ba2e57e75633d517d34c
           Align(
             alignment: Alignment.bottomCenter,
             child: Image.asset(

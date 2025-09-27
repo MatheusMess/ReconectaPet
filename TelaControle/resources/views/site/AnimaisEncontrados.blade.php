@@ -34,8 +34,11 @@
                 margin-bottom: 20px;
             }
         }
+        #ic:hover{
+            background-color: gold;
+        }
         .card{
-            height: 125%;
+            height: 110%;
             margin: 10px;
             li{
                 margin-top: 10px;
@@ -44,6 +47,9 @@
                 width: 100%;
                 justify-content: space-between;
             }
+        }
+        #teste{
+            color: black;
         }
     </style>
     {{-- @endcomponent--}}
@@ -60,11 +66,11 @@
                 ],
                 [
                     'tipo' => 'Gato',
-                    'nome' => 'Olivia',
-                    'raca' => 'Sphynx',
-                    'cor' => 'Bege',
+                    'nome' => '',
+                    'raca' => 'Siamês',
+                    'cor' => 'Preto e creme',
                     'sexo' => 'Fêmea',
-                    'imagem' => 'https://cdn2.thecatapi.com/images/MTY3NjU2Mg.jpg',
+                    'imagem' => 'https://adotar.com.br/upload/2024-04/animais_imagem1112099.jpg?w=700&format=webp',
                 ],
                 [
                     'tipo' => 'Cachorro',
@@ -72,25 +78,67 @@
                     'raca' => 'Beagle',
                     'cor' => 'Tricolor',
                     'sexo' => 'Macho',
-                    'imagem' => 'https://images.dog.ceo/breeds/beagle/n02088364_11136.jpg',
+                    'imagem' => 'https://love.doghero.com.br/wp-content/uploads/2016/10/Beagle-6-1024x768.jpg',
                 ],
                 [
                     'tipo' => 'Cachorro',
-                    'nome' => 'Kira',
-                    'raca' => 'Corgi',
-                    'cor' => 'Laranja e branco',
+                    'nome' => '',
+                    'raca' => 'Labrador',
+                    'cor' => 'Branco',
                     'sexo' => 'Fêmea',
-                    'imagem' => 'https://images.dog.ceo/breeds/corgi-cardigan/n02113186_291.jpg',
+                    'imagem' => 'https://cdn.jornaldaparaiba.com.br/wp-content/uploads/2024/01/racas-de-cachorro-labrador-retriever.jpg?xid=650493',
+                ],
+                [
+                    'tipo' => ' ',
+                    'nome' => 'Teste',
+                    'raca' => ' ',
+                    'cor' => ' ',
+                    'sexo' => ' ',
+                    'imagem' => 'https://wallpapers.com/images/featured/tudo-branco-f9i0iegpvjn3oxtd.jpg',
+                ],
+                [
+                    'tipo' => ' ',
+                    'nome' => 'Teste',
+                    'raca' => ' ',
+                    'cor' => ' ',
+                    'sexo' => ' ',
+                    'imagem' => 'https://wallpapers.com/images/featured/tudo-branco-f9i0iegpvjn3oxtd.jpg',
+                ],
+                [
+                    'tipo' => ' ',
+                    'nome' => 'Teste',
+                    'raca' => ' ',
+                    'cor' => ' ',
+                    'sexo' => ' ',
+                    'imagem' => 'https://wallpapers.com/images/featured/tudo-branco-f9i0iegpvjn3oxtd.jpg',
+                ],
+                [
+                    'tipo' => ' ',
+                    'nome' => 'Teste',
+                    'raca' => ' ',
+                    'cor' => ' ',
+                    'sexo' => ' ',
+                    'imagem' => 'https://wallpapers.com/images/featured/tudo-branco-f9i0iegpvjn3oxtd.jpg',
                 ],
             ];
         @endphp
         @foreach($animais as $animal)
-        <div class="col s12 m3" style="height: 300px" >
+        <div class="col s12 m3" style="height: 300px; margin-bottom: 50px;" >
             <div class="card">
                 <div class="card-image">
-                    <img height="200px"  src="{{ $animal['imagem'] }}">
-                    <span class="card-title"><b>{{ $animal['nome'] }}</b></span>
-                    <a class="btn-floating halfway-fab waves-effect waves-light red" href="http://reconectpet.test/dap"><i class="material-icons background-color: cyan">visibility</i></a>
+                    <img height="175px"  src="{{ $animal['imagem'] }}">
+                    
+                    @if(!$animal['nome'])
+                        <span style="font-size:20px;" class="card-title"><b>(Sem coleira)</b></span>
+                    @endif
+                    @if($animal['nome']=="Teste")
+                        <span id="teste"class="card-title"><b><b>{{ $animal['nome'] }}</b></b></span>
+                        @else
+                        @if($animal['nome'])
+                            <span class="card-title"><b>{{ $animal['nome'] }}</b></span>
+                        @endif
+                    @endif
+                    <a id="ic" class="btn-floating halfway-fab" href="dae"><i id="ic" class="material-icons cyan">visibility</i></a>
                 </div>
                 <div class="card-content">
                     <ul class="info">

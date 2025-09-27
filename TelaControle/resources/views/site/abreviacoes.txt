@@ -1,0 +1,11 @@
+D => Detalhes
+
+P => Perdidos
+E => Encontrados
+N => Novos
+A => Animais
+
+C => Casos
+E => Editados
+R => Resolvidos
+A => Abandonados
