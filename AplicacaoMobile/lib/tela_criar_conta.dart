@@ -22,20 +22,15 @@ class TelaCriarConta extends StatelessWidget {
                 children: [
                   const SizedBox(height: 20),
                   const Text(
-                    "ReconectaPet",
+                    "Criar Conta",
                     style: TextStyle(
-                      fontSize: 36,
+                      fontSize: 50,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    "Criar Conta",
-                    style: TextStyle(fontSize: 20, color: Colors.white70),
-                  ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 60),
 
                   _campoTexto("Nome", Icons.person),
                   const SizedBox(height: 12),

@@ -16,7 +16,7 @@ class _TelaApresentacaoState extends State<TelaApresentacao> {
 
   final List<Map<String, String>> _paginas = [
     {
-      "imagem": "assets/apresentacao1.png",
+      "imagem": "assets/apresentacao1.jpg",
       "titulo": "Encontre seu pet",
       "descricao":
           "Nosso app ajuda você a localizar animais perdidos na sua cidade.",
@@ -29,9 +29,9 @@ class _TelaApresentacaoState extends State<TelaApresentacao> {
     },
     {
       "imagem": "assets/apresentacao3.jpg",
-      "titulo": "Adote com facilidade",
+      "titulo": "Ajude a salvar vidas",
       "descricao":
-          "Conheça animais disponíveis para adoção e dê um novo lar a eles.",
+          "Participe de ações que fazem a diferença e contribua para um futuro melhor.",
     },
   ];
 
