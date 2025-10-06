@@ -9,7 +9,7 @@ class FundoPatinhaAleatoria extends StatelessWidget {
   final double? anguloFixo;
   final bool anguloAleatorio;
   final double opacidade;
-  final double escalaPatinha;
+  final double escalaPatinha; // 🔹 novo
   final List<Widget> stackChildren;
 
   const FundoPatinhaAleatoria({

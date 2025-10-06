@@ -3,8 +3,17 @@ import 'tela_login.dart';
 import 'tela_criar_conta.dart';
 import 'tela_principal.dart';
 import 'tela_cadastro_animal.dart';
+import 'tela_apresentacao.dart';
 
 class Navegacao {
+  // Vai para a tela de apresentação
+  static void irParaApresentacao(BuildContext context) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const TelaApresentacao()),
+    );
+  }
+
   // Vai para a tela de login
   static void irParaLogin(BuildContext context) {
     Navigator.pushReplacement(
@@ -21,7 +30,7 @@ class Navegacao {
     );
   }
 
-  // Vai para a tela principal (lista de animais perdidos)
+  // Vai para a tela principal
   static void irParaTelaPrincipal(BuildContext context) {
     Navigator.pushReplacement(
       context,

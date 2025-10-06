@@ -22,20 +22,15 @@ class TelaLogin extends StatelessWidget {
                 children: [
                   const SizedBox(height: 20),
                   const Text(
-                    "ReconectaPet",
+                    "Entrar",
                     style: TextStyle(
-                      fontSize: 36,
+                      fontSize: 50,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    "Entrar",
-                    style: TextStyle(fontSize: 20, color: Colors.white70),
-                  ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 100),
 
                   _campoTexto("E-mail", Icons.email),
                   const SizedBox(height: 15),
@@ -126,12 +121,12 @@ class TelaLogin extends StatelessWidget {
             ),
           ),
 
-          // Cachorro
+          // Cachorro sempre embaixo
           Align(
             alignment: Alignment.bottomCenter,
             child: Image.asset(
-              "assets/cachorro1.png",
-              height: 200,
+              "assets/cachorro2.png",
+              height: 220,
               fit: BoxFit.contain,
             ),
           ),
