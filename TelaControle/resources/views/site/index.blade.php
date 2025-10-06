@@ -77,7 +77,7 @@
         </div>
         <div class="opcao">
             <span class="icone-fundo">&#10060;</span> <!-- X -->
-            <a href="ca"><h1>Casos Abandonados</h1></a>
+            <a href="ca"><h1>Casos Inativados</h1></a>
         </div>
     </div>
 @endsection

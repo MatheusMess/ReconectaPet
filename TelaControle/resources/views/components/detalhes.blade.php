@@ -171,7 +171,7 @@
                 <button id="reso" class="btn-caso">Resolvido</button>
             @endif
             @if($abandonar)
-                <button id="aban" class="btn-caso">Abandonar</button>
+                <button id="aban" class="btn-caso">Inativar</button>
             @endif
             @if($rcr)
                 <button id="aban" class="btn-caso">Reativar Caso</button>
@@ -444,7 +444,7 @@
             @endif
 
             @if($abandonar)
-                <button id="aban" class="btn-caso" >Abandonar</button>
+                <button id="aban" class="btn-caso" >Inativar</button>
             @endif
 
             @if($rcr)

@@ -3,7 +3,7 @@
 @section('title','Casos Resolvidos')
 @section('conteudo')
 	<div class="container mt-4">
-		<h2 class="mb-4">Casos Abandonados</h2>
+		<h2 class="mb-4">Casos Inativados</h2>
 		<div class="row">
 			@php
 				$animais = [
