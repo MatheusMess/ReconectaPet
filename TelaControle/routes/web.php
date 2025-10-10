@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CasoPendenteController;
+use App\Http\Controllers\AnimalController;
 
 Route::get('/', function () {
     return view('site.index');
@@ -64,3 +65,6 @@ Route::get('/ce', function () {
 
 // Rota para listar novos animais encontrados pendentes de aprovação
 Route::get('/nae2', [CasoPendenteController::class, 'indexEncontrados'])->name('admin.novos.encontrados');
+
+// Rota para listar animais encontrados e ativos
+Route::get('/n-animais-encontrados', [AnimalController::class, 'listarNEncontrados'])->name('site.listaNEncontrados');

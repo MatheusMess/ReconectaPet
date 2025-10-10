@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('animais', function (Blueprint $table) {
             $table->id();
             // Chave estrangeira para a tabela 'users'
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('usuarios')->onDelete('cascade');
             $table->string('nome')->nullable();
             $table->enum('tipo', ['Gato', 'Cachorro', 'Outro'])->nullable();
             $table->enum('situacao', ['Perdido', 'Encontrado'])->nullable();
@@ -29,7 +29,7 @@ return new class extends Migration
             $table->string('imagem2')->nullable();
             $table->string('imagem3')->nullable();
             $table->string('imagem4')->nullable();
-            $table->enum('status', ['ativo', 'inativo', 'resolvido'])->default('ativo');
+            $table->enum('status', ['ativo', 'inativo', 'resolvido','pendente'])->default('pendente');
             $table->timestamps();
         });
     }
