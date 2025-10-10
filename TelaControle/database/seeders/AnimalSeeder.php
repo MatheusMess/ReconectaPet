@@ -63,7 +63,7 @@ class AnimalSeeder extends Seeder
             // --- De detalhesAE.blade.php (Animal Encontrado) ---
             [
                 'user_id' => 2,
-                'nome' => '', // Sem nome
+                //'nome' => '', // Sem nome
                 'tipo' => 'Gato',
                 'raca' => 'Siamês',
                 'cor' => 'Preto e creme',
@@ -82,14 +82,47 @@ class AnimalSeeder extends Seeder
             [
                 'user_id' => 1,
                 'tipo' => 'Gato',
-                'nome' => 'Mimi',
+                //'nome' => '(sem coleira)',
                 'raca' => 'Siamês',
                 'cor' => 'Branco e cinza',
                 'sexo' => 'F',
                 'imagem1' => 'https://adotar.com.br/upload/2016-07/animais_imagem200048.jpg?w=700&format=webp',
-                'status' => 'ativo',
-                'situacao' => 'Perdido',
+                //'status' => 'pendente',
+                'situacao' => 'Encontrado',
             ],
+            [
+                'user_id' => 1,
+                'tipo' => 'Cachorro',
+                'nome' => 'Max',
+                'raca' => 'Labrador',
+                'cor' => 'Preto',
+                'sexo' => 'M',
+                'imagem1' => 'https://cdn.los-animales.org/fotos/419836998_7902153-filhote-de-labrador-preto.jpg',
+                //'status' => 'pendente',
+                'situacao' => 'Encontrado',
+            ],
+            [
+                'user_id' => 1,
+                'tipo' => 'Gato',
+                //'nome' => '(sem coleira)',
+                'raca' => 'Persa',
+                'cor' => 'Cinza',
+                'sexo' => 'M',
+                'imagem1' => 'https://img.olx.com.br/images/25/252444316710330.jpg',
+                //'status' => 'pendente',
+                'situacao' => 'Encontrado',
+            ],
+            [
+                'user_id' => 1,
+                'tipo' => 'Cachorro',
+                'nome' => 'Luna',
+                'raca' => 'Akbash',
+                'cor' => 'Branco',
+                'sexo' => 'F',
+                'imagem1' => 'https://cdn.pixabay.com/photo/2018/12/09/14/58/dog-3865029_1280.jpg',
+                //'status' => 'pendente',
+                'situacao' => 'Encontrado',
+            ]
             // Adicionei os outros animais da sua lista aqui
         ];
 

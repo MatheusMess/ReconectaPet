@@ -20,7 +20,7 @@ class AnimalController extends Controller
     {
         // 1. Busca no banco de dados usando o Model 'Animal'
         $animais = Animal::where('situacao', 'Encontrado')
-                         ->where('status', 'ativo')
+                         ->where('status', 'pendente')
                          ->get();
 
         // 2. Retorna a view 'listaEncontrados' e passa a variável 'animais' para ela

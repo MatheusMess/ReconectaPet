@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             // Chave estrangeira para a tabela 'users'
             $table->foreignId('user_id')->constrained('usuarios')->onDelete('cascade');
-            $table->string('nome')->nullable();
+            $table->string('nome')->nullable()->default('(sem coleira)');
             $table->enum('tipo', ['Gato', 'Cachorro', 'Outro'])->nullable();
             $table->enum('situacao', ['Perdido', 'Encontrado'])->nullable();
             $table->string('raca')->nullable();
