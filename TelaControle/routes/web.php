@@ -68,3 +68,6 @@ Route::get('/nae2', [CasoPendenteController::class, 'indexEncontrados'])->name('
 
 // Rota para listar animais encontrados e ativos
 Route::get('/n-animais-encontrados', [AnimalController::class, 'listarNEncontrados'])->name('site.listaNEncontrados');
+
+// Altere esta rota para POST e remova o {id} da URL
+Route::post('/dn-animais-encontrados', [AnimalController::class, 'DNEncontrados'])->name('site.DNEncontrados');

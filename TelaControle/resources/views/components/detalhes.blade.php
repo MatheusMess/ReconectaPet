@@ -161,23 +161,13 @@
         </div>
 
         <div class="botao">
-            @if($aceitar)
+            {{-- Lógica de botões corrigida para usar a variável $caso --}}
+            @if($caso == 10) {{-- Antes da aprovação --}}
                 <button id="reso" class="btn-caso">Aceitar</button>
-            @endif
-            @if($recusar)
                 <button id="aban" class="btn-caso">Recusar</button>
-            @endif
-            @if($resolvido)
+            @elseif($caso == 11) {{-- Depois da aprovação --}}
                 <button id="reso" class="btn-caso">Resolvido</button>
-            @endif
-            @if($abandonar)
                 <button id="aban" class="btn-caso">Inativar</button>
-            @endif
-            @if($rcr)
-                <button id="aban" class="btn-caso">Reativar Caso</button>
-            @endif
-            @if($rca)
-                <button id="reso" class="btn-caso">Reativar Caso</button>
             @endif
         </div>
     </div>
@@ -305,12 +295,7 @@
         transition:background 0.25s;
     }
     
-    
-</style>
-@if($caso >= 10)
-    <style>
-        /* tela cheia: escala inicial */
-        .pai{
+    .pai{
             transform: scale(0.85);
             transform-origin: top center;
             transition: transform 180ms ease;
@@ -330,33 +315,16 @@
                 align-items: stretch;
         }
         @media (max-width: 1000px) {
-            .pai { transform: scale(0.55); }
+            .pai { transform: scale(0.55); 
                 transform: none;
                 flex-direction: column;
-                align-items: stretch;
+                align-items: stretch;}
         }
-        
-    </style>
-    /*
-    @if($caso == 11 || $caso == 13)
-        <style>
-        .alterado2{
-            background-color: rgba(42, 160, 42, 0.795);
-            font-weight: bold;
-        }
-        </style>
-    @endif
-    @if($caso == 10 || $caso == 12)
-        <style>
-        .alterado1{
-            background-color: rgba(252, 59, 59, 0.801);
-            font-weight: bold;
-        }
-        </style>
-    @endif*/
-@endif
+    
+</style>
+
 @else
-        <div class="pai">
+<div class="pai">
     <div id="img" class="white" style="border-radius: 50px">
         <div id="imgs">
             <img src="{{ $animal['imagem1'] ?? asset('images/placeholder.png') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
@@ -418,7 +386,7 @@
                         <li><b>Lugar encontrado:</b></li>
                         <p>{{$animal['LugarE']}}</p>
                         @break
-                    @case(6)
+                    @   case(6)
                         <li><b>Lugar encontrado:</b></li>
                         <p>{{$animal['LugarE']}}</p>
                         @break
@@ -431,27 +399,33 @@
             </ul>
         </div>
         <div class="botao" >
-            @if($aceitar)
+            @if($caso == 5 || $caso == 6 || $caso == 7)
                 <button id="reso" class="btn-caso" >Aceitar</button>
+                <button id="aban" class="btn-caso" >Recusar</button>
             @endif
 
+            {{-- Comentário corrigido para a sintaxe do Blade --}}
+            {{--
             @if($recusar)
                 <button id="aban" class="btn-caso" >Recusar</button>
             @endif
+            --}}
             
-            @if($resolvido)
+            @if($caso == 1 || $caso == 2)
                 <button id="reso" class="btn-caso" >Resolvido</button>
             @endif
 
+            {{--
             @if($abandonar)
                 <button id="aban" class="btn-caso" >Inativar</button>
             @endif
+            --}}
 
-            @if($rcr)
+            @if($caso == 3)
                 <button id="aban" class="btn-caso" >Reativar Caso</button>
             @endif
 
-            @if($rca)
+            @if($caso == 4)
                 <button id="reso" class="btn-caso" >Reativar Caso</button>
             @endif
             
@@ -577,5 +551,6 @@
     }
     
 </style>
+
 
 @endif

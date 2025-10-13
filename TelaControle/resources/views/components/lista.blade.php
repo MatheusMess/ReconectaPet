@@ -19,7 +19,12 @@
                 </ul>
                 <div id="btns" class="d-flex justify-content-between">
                     
-                    <a id="det" href="{{ $urlDetalhes }}" class="btn btn-info">Ver detalhes</a>
+                    {{-- SUBSTITUA O LINK <a> POR ESTE FORMULÁRIO --}}
+                    <form action="{{ route('site.DNEncontrados') }}" method="POST" style="display: inline;">
+                        @csrf  {{-- Token de segurança obrigatório do Laravel --}}
+                        <input type="hidden" name="id" value="{{ $animal['id'] }}">
+                        <button type="submit" class="btn btn-primary">Ver Detalhes</button>
+                    </form>
                     
                     @if($showActions)
                         <button id="ace" class="btn btn-accept " data-id="{{ $animal['id'] ?? '' }}">Aceitar</button>
