@@ -71,3 +71,7 @@ Route::get('/n-animais-encontrados', [AnimalController::class, 'listarNEncontrad
 
 // Altere esta rota para POST e remova o {id} da URL
 Route::post('/dn-animais-encontrados', [AnimalController::class, 'DNEncontrados'])->name('site.DNEncontrados');
+
+Route::get('/n-animais-perdidos', [AnimalController::class, 'listarNPerdidos'])->name('site.listaNPerdidos');
+
+Route::post('/dn-animais-perdidos', [AnimalController::class, 'DNPerdidos'])->name('site.DNPerdidos');

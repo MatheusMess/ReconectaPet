@@ -23,7 +23,7 @@
                     <form action="{{ route('site.DNEncontrados') }}" method="POST" style="display: inline;">
                         @csrf  {{-- Token de segurança obrigatório do Laravel --}}
                         <input type="hidden" name="id" value="{{ $animal['id'] }}">
-                        <button type="submit" class="btn btn-primary">Ver Detalhes</button>
+                        <button id="det" type="submit" class="btn btn-primary">Ver Detalhes</button>
                     </form>
                     
                     @if($showActions)
@@ -70,7 +70,8 @@
     }
     #btnsbutton{
         button{
-        background-color: rgb(16, 196, 228);}
+            background-color: rgb(16, 196, 228);
+        }
     }
     #det{
         background-color: rgb(16, 196, 228);

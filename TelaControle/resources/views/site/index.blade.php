@@ -29,10 +29,12 @@
             
         }
         .opcao:hover{
-            transform: scale(1.07);
+            transform: scale(1.08);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
             cursor: pointer;
             background-color: gold;
+            border-radius: 50px;
+            transition: 200ms;
         }
         .icone-fundo{
             position: absolute;
@@ -61,7 +63,7 @@
         </div>
         <div class="opcao">
             <span class="icone-fundo">&#128364;</span> <!-- pata -->
-            <a href="nae"><h1>Novos Animais Encontrados</h1></a>
+            <a href="n-animais-encontrados"><h1>Novos Animais Encontrados</h1></a>
         </div>
         <div class="opcao">
             <span class="icone-fundo">&#10004;</span> <!-- verificado -->
@@ -73,7 +75,7 @@
         </div>
         <div class="opcao">
             <span class="icone-fundo">&#9940;</span> <!-- lupa -->
-            <a href="nap"><h1>Novos Animais Perdidos</h1></a>
+            <a href="n-animais-perdidos"><h1>Novos Animais Perdidos</h1></a>
         </div>
         <div class="opcao">
             <span class="icone-fundo">&#10060;</span> <!-- X -->

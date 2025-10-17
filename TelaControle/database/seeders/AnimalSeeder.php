@@ -144,7 +144,7 @@ class AnimalSeeder extends Seeder
                 'imagem4' => 'https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcQPhKXN4cGJl2MCAsyIozhLZBAnyDIBmYszyE1GAHIBlLYylcjU',
                 'aparencia' => 'Orelhas peludas, olhos azuis, parecido com um lobo',
                 'lugar_visto' => 'Praça Dos Três Poderes',
-                'status' => 'pendente',
+                //'status' => 'pendente',
                 'situacao' => 'Perdido',
             ]
 

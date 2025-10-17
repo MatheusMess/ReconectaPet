@@ -24,6 +24,15 @@ class AnimalController extends Controller
         return view('site.listaNovosEncontrados', ['animais' => $animais]);
     }
 
+    public function listarNPerdidos()
+    {
+        $animais = Animal::where('situacao', 'Perdido')
+                         ->where('status', 'pendente')
+                         ->get();
+
+        return view('site.listaNovosPerdidos', ['animais' => $animais]);
+    }
+
     /**
      * Mostra os detalhes de um animal específico recebido via POST.
      */
