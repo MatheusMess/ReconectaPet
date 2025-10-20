@@ -75,3 +75,6 @@ Route::post('/dn-animais-encontrados', [AnimalController::class, 'DNEncontrados'
 Route::get('/n-animais-perdidos', [AnimalController::class, 'listarNPerdidos'])->name('site.listaNPerdidos');
 
 Route::post('/dn-animais-perdidos', [AnimalController::class, 'DNPerdidos'])->name('site.DNPerdidos');
+
+Route::get('/todos-animais', [AnimalController::class, 'TodosAnimais'])->name('site.todosAnimais');
+Route::post('/detalhes-do-animal', [AnimalController::class, 'DetalheAnimal'])->name('site.detalheAnimal');

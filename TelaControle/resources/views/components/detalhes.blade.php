@@ -6,15 +6,13 @@
     $isBefore = in_array($caso, [10, 12], true);
     $isAfter  = in_array($caso, [11, 13], true);
 
-    // campos e imagens
+    
     $campos = ['tipo','raca','tam','sexo','cor','aparencia','LugarV','LugarE','nome'];
     $imagens = ['imagem1','imagem2','imagem3','imagem4'];
 
-    // helper: valor "N..." deve receber "' '" quando não informado -> aqui usamos string com um espaço
     $nValue = function($key) use ($animal) {
         $k = 'N'.$key;
         $v = $animal[$k] ?? null;
-        // retornar " " quando não informado (conforme requisito)
         if (is_null($v) || trim((string)$v) === '') {
             return ' ';
         }
@@ -27,11 +25,9 @@
     };
 
     $display = function($key) use ($isBefore, $origValue, $nValue) {
-        // para "antes" sempre mostra o original
         if ($isBefore) {
             return $origValue($key);
         }
-        // para "depois" mostra N... quando presente (caso contrário original)
         $nv = $nValue($key);
         return trim((string)$nv) === ' ' ? $origValue($key) : $nv;
     };
@@ -76,7 +72,6 @@
             @endforeach
         </div>
 
-        {{-- usar display('nome') ao invés de checar diretamente $animal['nome'] --}}
         @php
             $nameChanged = $isChanged('nome');
             $nameClass = $nameChanged ? ($isBefore ? 'changed-before' : 'changed-after') : '';
@@ -161,11 +156,10 @@
         </div>
 
         <div class="botao">
-            {{-- Lógica de botões corrigida para usar a variável $caso --}}
-            @if($caso == 10) {{-- Antes da aprovação --}}
+            @if($caso == 10) 
                 <button id="reso" class="btn-caso">Aceitar</button>
                 <button id="aban" class="btn-caso">Recusar</button>
-            @elseif($caso == 11) {{-- Depois da aprovação --}}
+            @elseif($caso == 11)
                 <button id="reso" class="btn-caso">Resolvido</button>
                 <button id="aban" class="btn-caso">Inativar</button>
             @endif
@@ -327,10 +321,10 @@
 <div class="pai">
     <div id="img" class="white" style="border-radius: 50px">
         <div id="imgs">
-            <img src="{{ $animal['imagem1'] ?? asset('images/placeholder.png') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
-            <img src="{{ $animal['imagem2'] ?? asset('images/placeholder.png') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
-            <img src="{{ $animal['imagem3'] ?? asset('images/placeholder.png') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
-            <img src="{{ $animal['imagem4'] ?? asset('images/placeholder.png') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
+            <img src="{{ $animal['imagem1'] ?? asset('images/animais/noimg.jpg') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
+            <img src="{{ $animal['imagem2'] ?? asset('images/animais/noimg.jpg') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
+            <img src="{{ $animal['imagem3'] ?? asset('images/animais/noimg.jpg') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
+            <img src="{{ $animal['imagem4'] ?? asset('images/animais/noimg.jpg') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
         </div>
         @if(!$animal['nome'])
             <span id="snome" class="center">(Sem coleira)</span>

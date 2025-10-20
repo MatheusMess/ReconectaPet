@@ -4,7 +4,7 @@
     <style>
         #pai{
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
             grid-template-rows: 1fr 1fr;
             gap: 40px;
             height: 50%;
@@ -36,6 +36,10 @@
             border-radius: 50px;
             transition: 200ms;
         }
+        .opcao:not(:hover){
+            border-radius: 30px;
+            transition: 200ms;
+        }
         .icone-fundo{
             position: absolute;
             left: 50%;
@@ -46,7 +50,14 @@
             opacity: 0.18;
             z-index: 1;
             pointer-events: none;
+            align-items: center;
+            
+            #estrela{
+                padding-top: 40px;
+                font-size: 150px;
+            }
         }
+
         h1{
             position: relative;
             z-index: 2;
@@ -70,6 +81,10 @@
             <a href="cr"><h1>Casos Resolvidos</h1></a>
         </div>
         <div class="opcao">
+            <span class="icone-fundo"><i class="material-icons" id="estrela">star</i></span> <!-- X -->
+            <a href="todos-animais"><h1>Todos Animais</h1></a>
+        </div>
+        <div class="opcao">
             <span class="icone-fundo">&#128269;</span> <!-- lupa -->
             <a href="ap"><h1>Animais Perdidos</h1></a>
         </div>
@@ -80,6 +95,10 @@
         <div class="opcao">
             <span class="icone-fundo">&#10060;</span> <!-- X -->
             <a href="ca"><h1>Casos Inativados</h1></a>
+        </div>
+        <div class="opcao">
+            <span class="icone-fundo">&#128393;</span> <!-- X -->
+            <a href="ce"><h1>Casos Editados</h1></a>
         </div>
     </div>
 @endsection

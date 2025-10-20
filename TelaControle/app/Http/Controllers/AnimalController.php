@@ -13,7 +13,6 @@ class AnimalController extends Controller
         return dd($animais);
     }
 
-    
     //Lista os animais com situação "Encontrado" e status "ativo".
     public function listarNEncontrados()
     {
@@ -33,23 +32,107 @@ class AnimalController extends Controller
         return view('site.listaNovosPerdidos', ['animais' => $animais]);
     }
 
-    /**
-     * Mostra os detalhes de um animal específico recebido via POST.
-     */
+    public function TodosAnimais()
+    {
+        $animais = Animal::get();
+
+        return view('site.todosAnimais', ['animais' => $animais]);
+    }
+
+    public function listarEncontrados()
+    {
+        $animais = Animal::where('situacao', 'Encontrado')
+                     ->where('status', 'ativo')
+                     ->get();
+
+        return view('site.AnimaisEncontrados', ['animais' => $animais]);
+    }
+    public function listarPerdidos()
+    {
+        $animais = Animal::where('situacao', 'Perdido')
+                     ->where('status', 'ativo')
+                     ->get();
+
+        return view('site.AnimaisEncontrados', ['animais' => $animais]);
+    }
+
+    /* 
+    public function Caso(Animal $animal)
+    {
+        if ($animal->situacao == 'Perdido') {
+            if ($animal->status == 'ativo') {
+                return $caso = 1;
+            }elseif ($animal->status == 'pendente') {
+                return $caso = 7;
+            }elseif ($animal->status == 'resolvido') {
+                return $caso = 3;
+            }elseif ($animal->status == 'inativo') {
+                return $caso = 4;
+            }
+        } elseif ($animal->situacao == 'Encontrado') {
+            if ($animal->status == 'ativo') {
+                return $caso = 2;
+            }elseif ($animal->status == 'pendente') {
+                return $caso = 6;
+            }elseif ($animal->status == 'resolvido') {
+                return $caso = 3;
+            }elseif ($animal->status == 'inativo') {
+                return $caso = 4;
+            }
+        }
+        
+        $animal['status'] = 'resolvido';
+    }
+    */
+    
+    //Detalhes de um animal específico recebido via POST.
+    
     public function DNEncontrados(Request $request)
     {
-        /*// 1. Valida se o ID foi enviado na requisição
-        $request->validate([
-            'id' => 'required|integer|exists:animais,id'
-        ]);
-        */
-        // 2. Pega o ID do input do formulário
         $animalId = $request->input('id');
-
-        // 3. Busca o animal pelo ID
         $animal = Animal::findOrFail($animalId);
-
-        // 4. Retorna a view de detalhes, passando o objeto $animal encontrado.
         return view('site.DetalhesNovosEncontrados', ['animal' => $animal]);
+    }
+    public function DetalheAnimal(Request $request)
+    {
+        $animalId = $request->input('id');
+        $animal = Animal::findOrFail($animalId);
+        
+        $caso = 0;
+        /*
+            caso [dap]  = 1
+            caso [dae]  = 2
+            caso [dcr]  = 3
+            caso [dca]  = 4
+            caso [dce]  = 5
+            caso [dnae] = 6
+            caso [dnap] = 7
+        */
+
+        if ($animal->situacao == 'Perdido') {
+            if ($animal->status == 'ativo') {
+                $caso = 1;
+            }elseif ($animal->status == 'pendente') {
+                $caso = 7;
+            }elseif ($animal->status == 'resolvido') {
+                $caso = 3;
+            }elseif ($animal->status == 'inativo') {
+                $caso = 4;
+            }
+        } elseif ($animal->situacao == 'Encontrado') {
+            if ($animal->status == 'ativo') {
+                $caso = 2;
+            }elseif ($animal->status == 'pendente') {
+                $caso = 6;
+            }elseif ($animal->status == 'resolvido') {
+                $caso = 3;
+            }elseif ($animal->status == 'inativo') {
+                $caso = 4;
+            }
+        }
+
+
+                return view('site.detalheAnimal', ['animal' => $animal, 'caso' => $caso]);
+
     }
 }
