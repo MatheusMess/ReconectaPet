@@ -13,7 +13,7 @@ class AnimalController extends Controller
         return dd($animais);
     }
 
-    //Lista os animais com situação "Encontrado" e status "ativo".
+    //Lista os animais
     public function listarNEncontrados()
     {
         $animais = Animal::where('situacao', 'Encontrado')
@@ -53,38 +53,10 @@ class AnimalController extends Controller
                      ->where('status', 'ativo')
                      ->get();
 
-        return view('site.AnimaisEncontrados', ['animais' => $animais]);
+        return view('site.AnimaisPerdidos', ['animais' => $animais]);
     }
-
-    /* 
-    public function Caso(Animal $animal)
-    {
-        if ($animal->situacao == 'Perdido') {
-            if ($animal->status == 'ativo') {
-                return $caso = 1;
-            }elseif ($animal->status == 'pendente') {
-                return $caso = 7;
-            }elseif ($animal->status == 'resolvido') {
-                return $caso = 3;
-            }elseif ($animal->status == 'inativo') {
-                return $caso = 4;
-            }
-        } elseif ($animal->situacao == 'Encontrado') {
-            if ($animal->status == 'ativo') {
-                return $caso = 2;
-            }elseif ($animal->status == 'pendente') {
-                return $caso = 6;
-            }elseif ($animal->status == 'resolvido') {
-                return $caso = 3;
-            }elseif ($animal->status == 'inativo') {
-                return $caso = 4;
-            }
-        }
-        
-        $animal['status'] = 'resolvido';
-    }
-    */
     
+
     //Detalhes de um animal específico recebido via POST.
     
     public function DNEncontrados(Request $request)

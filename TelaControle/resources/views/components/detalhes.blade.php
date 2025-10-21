@@ -397,23 +397,11 @@
                 <button id="reso" class="btn-caso" >Aceitar</button>
                 <button id="aban" class="btn-caso" >Recusar</button>
             @endif
-
-            {{-- Comentário corrigido para a sintaxe do Blade --}}
-            {{--
-            @if($recusar)
-                <button id="aban" class="btn-caso" >Recusar</button>
-            @endif
-            --}}
             
             @if($caso == 1 || $caso == 2)
                 <button id="reso" class="btn-caso" >Resolvido</button>
-            @endif
-
-            {{--
-            @if($abandonar)
                 <button id="aban" class="btn-caso" >Inativar</button>
             @endif
-            --}}
 
             @if($caso == 3)
                 <button id="aban" class="btn-caso" >Reativar Caso</button>

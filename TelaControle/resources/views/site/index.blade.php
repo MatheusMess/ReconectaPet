@@ -70,7 +70,7 @@
     <div id="pai">
         <div class="opcao">
             <span class="icone-fundo">&#128062;</span> <!-- pata -->
-            <a href="ae"><h1>Animais Encontrados</h1></a>
+            <a href="animais-encontrados"><h1>Animais Encontrados</h1></a>
         </div>
         <div class="opcao">
             <span class="icone-fundo">&#128364;</span> <!-- pata -->
@@ -86,7 +86,7 @@
         </div>
         <div class="opcao">
             <span class="icone-fundo">&#128269;</span> <!-- lupa -->
-            <a href="ap"><h1>Animais Perdidos</h1></a>
+            <a href="animais-perdidos"><h1>Animais Perdidos</h1></a>
         </div>
         <div class="opcao">
             <span class="icone-fundo">&#9940;</span> <!-- lupa -->

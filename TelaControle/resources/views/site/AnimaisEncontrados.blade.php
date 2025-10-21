@@ -1,7 +1,8 @@
 @extends('site.layout')
 @section('title','Animais Perdidos')
 @section('conteudo')
-    {{--@component('components.navegacao')--}}
+{{--    
+{{--@component('components.navegacao')-}}
     <style>
         img{
             width: 150px;
@@ -52,7 +53,7 @@
             color: black;
         }
     </style>
-    {{-- @endcomponent--}}
+    {{-- @endcomponent-}}
     <div class="row container">
         @php
             $animais = [
@@ -151,5 +152,6 @@
             </div>
         </div>
         @endforeach
-    </div>
+    </div>--}}
+        <x-listagem :animais="$animais" :todos="false"/>
 @endsection
