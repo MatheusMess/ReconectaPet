@@ -7,7 +7,7 @@
     $isAfter  = in_array($caso, [11, 13], true);
 
     
-    $campos = ['tipo','raca','tam','sexo','cor','aparencia','LugarV','LugarE','nome'];
+    $campos = ['tipo','raca','tam','sexo','cor','aparencia','lugar_visto','lugar_encontrado','nome'];
     $imagens = ['imagem1','imagem2','imagem3','imagem4'];
 
     $nValue = function($key) use ($animal) {
@@ -105,49 +105,49 @@
                 @switch($caso)
                     @case(1)
                         <li><b>Ultimo lugar visto:</b></li>
-                        <p>{{ $display('LugarV') }}</p>
+                        <p>{{ $display('lugar_visto') }}</p>
                         @break
                     @case(2)
                         <li><b>Lugar encontrado:</b></li>
-                        <p>{{ $display('LugarE') }}</p>
+                        <p>{{ $display('lugar_encontrado') }}</p>
                         @break
                     @case(3)
                     @case(4)
                     @case(5)
                         <li><b>Ultimo lugar visto:</b></li>
-                        <p class="{{ $isChanged('LugarV') ? ($isBefore ? 'alterado1' : 'alterado2') : '' }}">{{ $display('LugarV') }}</p>
+                        <p class="{{ $isChanged('lugar_visto') ? ($isBefore ? 'alterado1' : 'alterado2') : '' }}">{{ $display('lugar_visto') }}</p>
                         <li><b>Lugar encontrado:</b></li>
-                        <p class="{{ $isChanged('LugarE') ? ($isBefore ? 'alterado1' : 'alterado2') : '' }}">{{ $display('LugarE') }}</p>
+                        <p class="{{ $isChanged('lugar_encontrado') ? ($isBefore ? 'alterado1' : 'alterado2') : '' }}">{{ $display('lugar_encontrado') }}</p>
                         @break
                     @case(6)
                         <li><b>Lugar encontrado:</b></li>
-                        <p>{{ $display('LugarE') }}</p>
+                        <p>{{ $display('lugar_encontrado') }}</p>
                         @break
                     @case(7)
                         <li><b>Ultimo lugar visto:</b></li>
-                        <p>{{ $display('LugarV') }}</p>
+                        <p>{{ $display('lugar_visto') }}</p>
                         @break
 
                     {{-- Perdido: antes = 10, depois = 11 --}}
                     @case(10)
                     @case(11)
                         @php
-                            $changedLV = $isChanged('LugarV');
+                            $changedLV = $isChanged('lugar_visto');
                             $clsLV = $changedLV ? ($isBefore ? 'alterado1' : 'alterado2') : '';
                         @endphp
                         <li><b>Último lugar visto:</b></li>
-                        <p class="{{ $clsLV }}">{{ $display('LugarV') }}</p>
+                        <p class="{{ $clsLV }}">{{ $display('lugar_visto') }}</p>
                         @break
 
                     {{-- Encontrado: antes = 12, depois = 13 --}}
                     @case(12)
                     @case(13)
                         @php
-                            $changedLE = $isChanged('LugarE');
+                            $changedLE = $isChanged('lugar_encontrado');
                             $clsLE = $changedLE ? ($isBefore ? 'alterado1' : 'alterado2') : '';
                         @endphp
                         <li><b>Lugar encontrado:</b></li>
-                        <p class="{{ $clsLE }}">{{ $display('LugarE') }}</p>
+                        <p class="{{ $clsLE }}">{{ $display('lugar_encontrado') }}</p>
                         @break
 
                     @default
@@ -168,7 +168,9 @@
 </div>
 
 <style>
-    /* container reduzido e responsivo */
+    /* estilos combinados (unificados dos dois blocos originais) */
+
+    /* container principal */
     .pai{
         margin: 4%;
         background-color: rgb(16, 196, 228);
@@ -182,31 +184,36 @@
         align-items: center;
         padding-left: 50px;
         margin-top: 20px;
+        transform: scale(0.85);
+        transform-origin: top center;
+        transition: transform 180ms ease;
     }
+
+    /* imagens */
     img{
         margin: 10px;
         width: 150px;
         height: 150px;
-        object-fit: cover; 
-        object-position: center; 
+        object-fit: cover;
+        object-position: center;
         border-radius: 30px;
         display: inline-block;
         transition: width 0.3s, height 0.3s;
     }
-    
-    
+
+    /* área de detalhes */
     #detalhes{
         border-radius: 50px;
-        width: 40%;
-        height: 90%;
-        align-items: center;
+        width: 100%;
+        height: 20%;
+        font-size: 30px;
+        padding: 30px;
         display: flex;
-        
-        font-size: 20px;
+        align-items: center;
         padding: 3%;
         margin-top: 20px;
-        
     }
+
     #imgs{
         height: 60%;
         padding-top: 3%;
@@ -216,6 +223,7 @@
         align-items: center;
         margin: 20px;
     }
+
     #img{
         width: 40%;
         height: 100%;
@@ -226,9 +234,11 @@
         font-size: 50px;
         border-radius: 50px;
     }
+
     li{
         margin-top: 15px;
     }
+
     #snome{
         width: 100%;
         height: 20%;
@@ -240,44 +250,35 @@
     .alterado1, .changed-before { background: rgba(255,0,0,0.18); }
     .alterado2, .changed-after { background: rgba(0,128,0,0.18); }
 
-    /* detalhes: sempre branco, com overflow para telas pequenas */
-    #detalhes{
-        width: 100%;
-        height: 20%;
-        font-size: 30px; 
-        padding: 30px;
-    }
-
+    /* layout secundário */
     .div2{
         width: 55%;
         display: flex;
         flex-direction: column;
-        
         align-items: center;
         margin-left: 3%;
-        margin-top: 20px;   
+        margin-top: 20px;
     }
+
     .botao{
         margin: 20px;
         width: 100%;
-        display: flex; 
+        display: flex;
         justify-content: center;
-        gap: 20px; 
+        gap: 20px;
     }
+
     #reso{
         background:rgba(0, 128, 0, 0.5);
     }
     #aban{
         background:rgba(255, 0, 0, 0.75);
     }
-    #reso:hover{
+    #reso:hover, #aban:hover{
         background: gold;
     }
-    #aban:hover{
-        background: gold;
-    }
+
     .btn-caso{
-        
         color:#333;
         border:none;
         border-radius:20px;
@@ -288,33 +289,37 @@
         cursor:pointer;
         transition:background 0.25s;
     }
-    
-    .pai{
-            transform: scale(0.85);
-            transform-origin: top center;
-            transition: transform 180ms ease;
-        }
 
-        /* conforme a tela reduz, reduz a escala */
-        @media (max-width: 1600px) {
-            .pai { transform: scale(0.7); }
-        }
-        @media (max-width: 1400px) {
-            .pai { transform: scale(0.65); }
-        }
-        @media (max-width: 1300px) {
-            .pai { transform: scale(0.60); }
-                transform: none;
-                flex-direction: column;
-                align-items: stretch;
-        }
-        @media (max-width: 1000px) {
-            .pai { transform: scale(0.55); 
-                transform: none;
-                flex-direction: column;
-                align-items: stretch;}
-        }
-    
+    /* ajustes de responsividade (mantidos e combinados) */
+    @media (max-width: 1600px) {
+        .pai { transform: scale(0.7); }
+    }
+    @media (max-width: 1400px) {
+        .pai { transform: scale(0.65); }
+    }
+    @media (max-width: 1300px) {
+        .pai { transform: scale(0.60); }
+        .pai { transform: none; flex-direction: column; align-items: stretch; }
+    }
+    @media (max-width: 1000px) {
+        .pai { transform: scale(0.55); transform: none; flex-direction: column; align-items: stretch; }
+    }
+
+    /* regras alternativas para a versão sem "antes/depois" */
+    .white { background: white; }
+    #nome{
+        width: 100%;
+        height: 20%;
+        margin-top: 10px;
+        padding: 30px;
+    }
+    #snome{
+        width: 100%;
+        height: 20%;
+        font-size: 30px;
+        padding: 30px;
+    }
+
 </style>
 
 @else
@@ -356,37 +361,37 @@
                 @switch($caso)
                     @case(1)
                         <li><b>Ultimo lugar visto:</b></li>
-                        <p>{{$animal['LugarV']}}</p>
+                        <p>{{$animal['lugar_visto']}}</p>
                         @break
                     @case(2)
                         <li><b>Lugar encontrado:</b></li>
-                        <p>{{$animal['LugarE']}}</p>
+                        <p>{{$animal['lugar_encontrado']}}</p>
                         @break
                     @case(3)
                         <li><b>Ultimo lugar visto:</b></li>
-                        <p>{{$animal['LugarV']}}</p>
+                        <p>{{$animal['lugar_visto']}}</p>
                         <li><b>Lugar encontrado:</b></li>
-                        <p>{{$animal['LugarE']}}</p>
+                        <p>{{$animal['lugar_encontrado']}}</p>
                         @break
                     @case(4)
                         <li><b>Ultimo lugar visto:</b></li>
-                        <p>{{$animal['LugarV']}}</p>
+                        <p>{{$animal['lugar_visto']}}</p>
                         <li><b>Lugar encontrado:</b></li>
-                        <p>{{$animal['LugarE']}}</p>
+                        <p>{{$animal['lugar_encontrado']}}</p>
                         @break
                     @case(5)
                         <li><b>Ultimo lugar visto:</b></li>
-                        <p>{{$animal['LugarV']}}</p>
+                        <p>{{$animal['lugar_visto']}}</p>
                         <li><b>Lugar encontrado:</b></li>
-                        <p>{{$animal['LugarE']}}</p>
+                        <p>{{$animal['lugar_encontrado']}}</p>
                         @break
                     @   case(6)
                         <li><b>Lugar encontrado:</b></li>
-                        <p>{{$animal['LugarE']}}</p>
+                        <p>{{$animal['lugar_encontrado']}}</p>
                         @break
                     @case(7)
                         <li><b>Ultimo lugar visto:</b></li>
-                        <p>{{$animal['LugarV']}}</p>
+                        <p>{{$animal['lugar_visto']}}</p>
                         @break
                     @default
                 @endswitch

@@ -64,7 +64,7 @@
     <body >
         <nav class="nav">
             <div id="nav"class="nav-wrapper accent-2">
-                <a href="#" class="brand-logo center"><!--<span class="black-text">Reconecta Pet</span>--> <img src="{{ asset('images/logo.jpg') }}" alt="Logo ReconectaPet" height="100px" id="logo"></a>
+                <a href="http://reconectapet.test/TelaControle/public/" class="brand-logo center"><!--<span class="black-text">Reconecta Pet</span>--> <img src="{{ asset('images/logo.jpg') }}" alt="Logo ReconectaPet" height="100px" id="logo"></a>
                 <ul id="nav-mobile" class="right hide-on-med-and-down">
                     <li><a href="http://reconectapet.test/TelaControle/public/" ><b>Início</b></a></li>
                     <li><a href="ce"><b>Casos Editados</b></a></li>

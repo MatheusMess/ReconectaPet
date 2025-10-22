@@ -94,7 +94,7 @@
         </div>
         <div class="opcao">
             <span class="icone-fundo">&#10060;</span> <!-- X -->
-            <a href="ca"><h1>Casos Inativados</h1></a>
+            <a href="casos-inativados"><h1>Casos Inativados</h1></a>
         </div>
         <div class="opcao">
             <span class="icone-fundo">&#128393;</span> <!-- X -->

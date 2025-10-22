@@ -8,17 +8,17 @@ use Illuminate\View\Component;
 class Listagem extends Component
 {
     public $animais;
-    public $todos;
+    public $info;
     
     /**
      * Create a new component instance.
      *
      * @return void
      */
-    public function __construct(Collection $animais, bool $todos)
+    public function __construct(Collection $animais, int $info)
     {
         $this->animais = $animais;
-        $this->todos = $todos;
+        $this->info = $info;
     }
 
     /**

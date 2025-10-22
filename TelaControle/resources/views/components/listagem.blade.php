@@ -12,7 +12,7 @@
                 @else
                     <span class="card-title"><b>{{ $animal->nome }}</b></span>
                 @endif
-
+                
                 {{-- Formulário para o botão "Ver Detalhes" --}}
                 <form action="{{ route('site.detalheAnimal') }}" method="POST" class="halfway-fab">
                     @csrf
@@ -24,11 +24,16 @@
             </div>
             <div class="card-content">
                 <ul class="info">
-                    @if ($todos)
+                    @if ($info === 1)
                         <li><b>Situação: </b>{{ $animal['situacao'] }}</li>
                         <li><b>Status: </b>{{ $animal['status'] }}</li>
                         <li><b>Animal: </b>{{ $animal['tipo'] }}</li>
                         <li><b>Sexo:   </b>{{ $animal['sexo'] }}</li>
+                    @elseif ($info === 2)
+                        <li><b>Animal: </b>{{ $animal->tipo }}</li>
+                        <li><b>Raça:   </b>{{ $animal->raca }}</li>
+                        <li><b>Sexo:   </b>{{ $animal->sexo }}</li>
+                        <li><b>Situação: </b>{{ $animal['situacao'] }}</li>
                     @else
                         <li><b>Animal: </b>{{ $animal->tipo }}</li>
                         <li><b>Raça:   </b>{{ $animal->raca }}</li>

@@ -7,8 +7,6 @@
         <div class="row">
             {{-- Verifica se a coleção de animais não está vazia --}}
             @if($animais->count() > 0)
-                {{-- Passa os dados recebidos do controller para o componente de lista --}}
-                {{-- showActions=false para não mostrar botões de aprovar/recusar --}}
                 <x-lista :animais="$animais" :showActions="true" />
             @else
                 <div class="col">

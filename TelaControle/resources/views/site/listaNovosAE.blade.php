@@ -7,7 +7,6 @@
         <div class="row">
             {{-- Verifica se a variável $animais existe e não está vazia --}}
             @if(isset($animais) && $animais->count() > 0)
-                {{-- O componente <x-lista> agora recebe os dados e é o único responsável por exibi-los --}}
                 <x-lista :animais="$animais" :showActions="true" />
             @else
                 <div class="col">

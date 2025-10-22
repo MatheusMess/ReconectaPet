@@ -153,5 +153,5 @@
         </div>
         @endforeach
     </div>--}}
-        <x-listagem :animais="$animais" :todos="false"/>
+        <x-listagem :animais="$animais" :info=0/>
 @endsection
