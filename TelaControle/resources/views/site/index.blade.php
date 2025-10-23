@@ -78,7 +78,7 @@
         </div>
         <div class="opcao">
             <span class="icone-fundo">&#10004;</span> <!-- verificado -->
-            <a href="cr"><h1>Casos Resolvidos</h1></a>
+            <a href="casos-resolvidos"><h1>Casos Resolvidos</h1></a>
         </div>
         <div class="opcao">
             <span class="icone-fundo"><i class="material-icons" id="estrela">star</i></span> <!-- X -->

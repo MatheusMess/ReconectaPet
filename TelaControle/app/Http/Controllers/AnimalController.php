@@ -62,6 +62,13 @@ class AnimalController extends Controller
 
         return view('site.CasosInativados', ['animais' => $animais]);
     }
+    public function listarResolvidos()
+    {
+        $animais = Animal::where('status', 'resolvido')
+                     ->get();
+
+        return view('site.CasosResolvidos', ['animais' => $animais]);
+    }
     
 
     //Detalhes de um animal específico recebido via POST.

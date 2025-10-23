@@ -8,7 +8,7 @@
 @foreach($animais as $animal)
     <div  class="col-md-6 col-lg-4 mb-4">
         <div id="item" class="card h-100">
-            <div class="img"><img src="{{ $animal['imagem1'] }}" class="card-img-top" alt="Imagem do {{ $animal['tipo'] }}"></div>
+            <div class="img"><img src="{{ asset('images/animais/'.$animal['id'].'/imagem1.png') ?? asset('images/animais/noimg.jpg') }}" class="card-img-top" alt="Imagem do {{ $animal['tipo'] }}"></div>
             <div class="card-body">
                 <h5 class="card-title">{{ $animal['nome'] }}</h5>
                 <ul class="list-unstyled mb-3">

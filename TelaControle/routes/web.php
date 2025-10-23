@@ -82,3 +82,4 @@ Route::post('/detalhes-do-animal', [AnimalController::class, 'DetalheAnimal'])->
 Route::get('/animais-perdidos', [AnimalController::class, 'listarPerdidos'])->name('AnimaisPerdidos');
 Route::get('/animais-encontrados', [AnimalController::class, 'listarEncontrados'])->name('AnimaisEncontrados');
 Route::get('/casos-inativados', [AnimalController::class, 'listarInativados'])->name('CasosInativados');
+Route::get('/casos-resolvidos', [AnimalController::class, 'listarResolvidos'])->name('CasosResolvidos');

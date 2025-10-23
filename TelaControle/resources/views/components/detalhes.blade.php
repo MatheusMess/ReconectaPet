@@ -326,16 +326,16 @@
 <div class="pai">
     <div id="img" class="white" style="border-radius: 50px">
         <div id="imgs">
-            <img src="{{ $animal['imagem1'] ?? asset('images/animais/noimg.jpg') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
-            <img src="{{ $animal['imagem2'] ?? asset('images/animais/noimg.jpg') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
-            <img src="{{ $animal['imagem3'] ?? asset('images/animais/noimg.jpg') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
-            <img src="{{ $animal['imagem4'] ?? asset('images/animais/noimg.jpg') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
+            <img src="{{ file_exists(public_path('images/animais/'.$animal['id'].'/imagem1.png')) ? asset('images/animais/'.$animal['id'].'/imagem1.png') : asset('images/animais/noimg.jpg') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
+            <img src="{{ file_exists(public_path('images/animais/'.$animal['id'].'/imagem2.png')) ? asset('images/animais/'.$animal['id'].'/imagem2.png') : asset('images/animais/noimg.jpg') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
+            <img src="{{ file_exists(public_path('images/animais/'.$animal['id'].'/imagem3.png')) ? asset('images/animais/'.$animal['id'].'/imagem3.png') : asset('images/animais/noimg.jpg') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
+            <img src="{{ file_exists(public_path('images/animais/'.$animal['id'].'/imagem4.png')) ? asset('images/animais/'.$animal['id'].'/imagem4.png') : asset('images/animais/noimg.jpg') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
         </div>
         @if(!$animal['nome'])
             <span id="snome" class="center">(Sem coleira)</span>
         @endif
         @if($animal['nome'])
-            <span id="nome" class="center">{{ $animal['nome']}}</span>
+            <span id="nome" class="center"><b>{{ $animal['nome']}}</b></span>
         @endif
         
     </div>

@@ -4,13 +4,13 @@
         <div class="card">
             <div class="card-image">
                 {{-- Usa a imagem do banco de dados --}}
-                <img height="175px" src="{{ $animal->imagem1 }}">
+                <img height="175px" src="{{ asset('images/animais/'.$animal['id'].'/imagem1.png') ?? asset('images/animais/noimg.jpg') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
                 
                 {{-- Lógica para exibir o nome ou "Sem coleira" --}}
                 @if(!$animal->nome)
-                    <span style="font-size:20px;" class="card-title"><b>(Sem coleira)</b></span>
+                    <span style="font-size:20px;" class="card-title"><b>b(Sem coleira)</b></span>
                 @else
-                    <span class="card-title"><b>{{ $animal->nome }}</b></span>
+                    <span class="card-title"><b><b>{{ $animal->nome }}</b></b></span>
                 @endif
                 
                 {{-- Formulário para o botão "Ver Detalhes" --}}
@@ -103,5 +103,22 @@
     }
     #ic:not(:hover){
         transition: 0.2s;
+    }
+
+    /* Contorno escuro nas letras do nome (card-title) */
+    .card-title {
+        color: #fff; /* cor do texto */
+        display: inline-block;
+        font-weight: 700;
+        -webkit-text-stroke: 1px rgba(0,0,0,0.88); /* contorno para WebKit */
+        text-shadow:
+            1px 1px 0 rgba(0,0,0,0.65),
+            -1px -1px 0 rgba(0,0,0,0.65),
+            1px -1px 0 rgba(0,0,0,0.65),
+            -1px 1px 0 rgba(0,0,0,0.65); /* fallback para navegadores sem text-stroke */
+        padding: 2px 6px;
+        border-radius: 6px;
+        -webkit-font-smoothing: antialiased;
+        backface-visibility: hidden;
     }
 </style>
