@@ -21,22 +21,22 @@ Route::get('/ae', function () {
 
 
 Route::get('/dap', function () {
-    return view('site.detalhesAP');
+    return view('site.TestesDesativados.detalhesAP');
 });
 Route::get('/dae', function () {
-    return view('site.detalhesAE');
+    return view('site.TestesDesativados.detalhesAE');
 });
 Route::get('/dnap', function () {
-    return view('site.detalhesNAP');
+    return view('site.TestesDesativados.detalhesNAP');
 });
 Route::get('/dnae', function () {
-    return view('site.detalhesNAE');
+    return view('site.TestesDesativados.detalhesNAE');
 });
 Route::get('/dcr', function () {
-    return view('site.detalhesCR');
+    return view('site.TestesDesativados.detalhesCR');
 });
 Route::get('/dca', function () {
-    return view('site.detalhesCA');
+    return view('site.TestesDesativados.detalhesCA');
 });
 Route::get('/dce', function () {
     return view('site.detalhesCE');
@@ -45,10 +45,10 @@ Route::get('/dce', function () {
 
 
 Route::get('/nap', function () {
-    return view('site.listaNovosAP');
+    return view('site.TestesDesativados.listaNovosAP');
 });
 Route::get('/nae', function () {
-    return view('site.listaNovosAE');
+    return view('site.TestesDesativados.listaNovosAE');
 });
 
 
