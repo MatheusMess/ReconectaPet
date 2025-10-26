@@ -5,7 +5,7 @@ class Animal {
   final String cor;
   final String especie;
   final String sexo;
-  final String imagem;
+  final List<String> imagens;
   final String ultimoLocal;
   final String cidade;
   final String bairro;
@@ -19,13 +19,16 @@ class Animal {
     required this.cor,
     required this.especie,
     required this.sexo,
-    required this.imagem,
+    required this.imagens,
     required this.ultimoLocal,
     required this.cidade,
     required this.bairro,
     required this.endereco,
     required this.dataDesaparecimento,
   });
+
+  String get imagemPrincipal =>
+      imagens.isNotEmpty ? imagens[0] : "assets/cachorro1.png";
 
   // Lista de exemplo
   static List<Animal> exemplos = [
@@ -36,7 +39,11 @@ class Animal {
       cor: "Marrom",
       especie: "Cachorro",
       sexo: "Macho",
-      imagem: "assets/cachorro3.jpg",
+      imagens: [
+        "assets/cachorro1.png",
+        "assets/cachorro2.png",
+        "assets/cachorro3.jpg",
+      ],
       ultimoLocal: "Centro",
       cidade: "São Paulo",
       bairro: "Centro",
@@ -50,7 +57,7 @@ class Animal {
       cor: "Branco",
       especie: "Cachorro",
       sexo: "Fêmea",
-      imagem: "assets/cachorro4.jpg",
+      imagens: ["assets/cachorro1.png", "assets/cachorro5.jpg"],
       ultimoLocal: "Rua A",
       cidade: "São Paulo",
       bairro: "Jardim das Flores",
