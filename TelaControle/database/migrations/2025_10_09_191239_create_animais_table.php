@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('raca')->nullable();
             $table->string('cor')->nullable();
             $table->enum('tam', ['Pequeno', 'Medio', 'Grande'])->nullable();
-            $table->enum('sexo', ['M', 'F', 'N'])->default('N');
+            $table->enum('sexo', ['Macho', 'Fêmea'])->nullable();
             $table->text('aparencia')->nullable();
             $table->text('lugar_visto')->nullable();
             $table->text('lugar_encontrado')->nullable();

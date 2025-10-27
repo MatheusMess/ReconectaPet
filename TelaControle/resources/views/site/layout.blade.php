@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <title>@yield('title')</title>
-        <link rel="shortcut icon" type="image/x-icon" href="../components/images/logoRP.ico"></link>
+        <link rel="shortcut icon" type="image/x-icon" href="{{ asset('images/logoRP.ico') }}"></link>
         <style>
             *{
                 margin: 0px;
@@ -24,14 +24,37 @@
                 ul{
                     align-self: flex-end;
                     justify-self: flex-end;
+                    
+                }
+                li{
+                    a{
+                        color: gold;
+                    }
+                    a:hover{
+                        color: #245A7C;
+                    }
                 }
                 li:hover{
                     background-color: gold;
+                    color: black
                 }
+                
             }
             #nav{
                 width: 100%;
-                background-color: rgb(16, 196, 228);
+                height: 100%;
+                background-color: #245A7C;
+                a{
+                    height: 100%;
+                    align-self: top;
+                    border-radius: 0%;
+                }
+            }
+            
+            #logo{
+                border-radius: 0%;
+                height: 125px;
+                align-self: top;
             }
             </style>
             <!-- background-color: deepskyblue; -->
@@ -41,14 +64,15 @@
     <body >
         <nav class="nav">
             <div id="nav"class="nav-wrapper accent-2">
-            <a href="#" class="brand-logo center"><span class="black-text">Reconecta Pet</span> </a>
-            <ul id="nav-mobile" class="right hide-on-med-and-down">
-                <li><a href="http://reconectapet.test/TelaControle/public/" class="black-text">Início</a></li>
-                <li><a href="ce" class="black-text">Casos Editados</a></li>
-            </ul>
+                <a href="http://reconectapet.test/TelaControle/public/" class="brand-logo center"><!--<span class="black-text">Reconecta Pet</span>--> <img src="{{ asset('images/logo.jpg') }}" alt="Logo ReconectaPet" height="100px" id="logo"></a>
+                <ul id="nav-mobile" class="right hide-on-med-and-down">
+                    <li><a href="http://reconectapet.test/TelaControle/public/" ><b>Início</b></a></li>
+                    <li><a href="ce"><b>Casos Editados</b></a></li>
+                </ul>
             </div>
         </nav>
         @yield('conteudo')
+        
         <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     </body>
 </html>
