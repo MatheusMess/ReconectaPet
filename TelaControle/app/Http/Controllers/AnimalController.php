@@ -31,13 +31,13 @@ class AnimalController extends Controller
 
         return view('site.listaNovosPerdidos', ['animais' => $animais]);
     }
-
+    /* 
     public function TodosAnimais()
     {
         $animais = Animal::get();
 
         return view('site.todosAnimais', ['animais' => $animais]);
-    }
+    }*/
 
     public function listarEncontrados()
     {
@@ -69,7 +69,6 @@ class AnimalController extends Controller
 
         return view('site.CasosResolvidos', ['animais' => $animais]);
     }
-    
 
     //Detalhes de um animal específico recebido via POST.
     
@@ -120,5 +119,39 @@ class AnimalController extends Controller
 
                 return view('site.detalheAnimal', ['animal' => $animal, 'caso' => $caso]);
 
+    }
+
+    /**
+     * Lista todos os animais com filtros (situação, status, tipo, sexo).
+     */
+    public function todosAnimais(Request $request)
+    {
+        $query = Animal::query();
+
+        // Aplica filtros somente se enviados
+        if ($request->filled('situacao')) {
+            $query->where('situacao', $request->input('situacao'));
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        if ($request->filled('animal')) {
+            $query->where('tipo', $request->input('animal'));
+        }
+
+        if ($request->filled('sexo')) {
+            // aceita valores 'M' ou 'F' conforme seu banco
+            $query->where('sexo', $request->input('sexo'));
+        }
+
+        $animais = $query->get();
+
+        // mantém os filtros para re-popular os selects na view
+        $filters = $request->only(['situacao','status','animal','sexo']);
+        $filters = array_merge(['situacao'=>'','status'=>'','animal'=>'','sexo'=>''], $filters);
+
+        return view('site.todosAnimais', compact('animais','filters'));
     }
 }

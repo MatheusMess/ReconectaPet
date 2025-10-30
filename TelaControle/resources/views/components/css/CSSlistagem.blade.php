@@ -1,10 +1,23 @@
 <style>
-    
+    .pai{
+        margin: 4%;
+        background-color: rgb(16, 196, 228);
+        width: 100%;
+        height: 100%;
+        align-self: center;
+        justify-self: center;
+        border-radius: 50px;
+        padding: 50px;
+        padding-top: 60px;
+        align-items: center;
+        margin-top: 20px;
+    }
     .img{
         object-fit: cover; 
         object-position: center; 
         height: 150px;
         width: 150px;
+        
     }
     #item{
         display: flex;
@@ -28,6 +41,7 @@
         height: 440px;
         margin-top: 100px;
         margin: 10px;
+        border-radius: 30px;
         li{
             margin-top: 10px;
             dysplay: flex;
@@ -40,7 +54,10 @@
         height: 250px;
         object-fit: cover; 
         object-position: center; 
-        border-radius: 100px;
+        border-radius: 30px 30px 0 0;
+    }
+    #img{
+        border-radius: 30px 30px 0 0;
     }
     }
     #teste{
@@ -69,7 +86,7 @@
             1px -1px 0 rgba(0,0,0,0.65),
             -1px 1px 0 rgba(0,0,0,0.65); /* fallback para navegadores sem text-stroke */
         padding: 2px 6px;
-        border-radius: 6px;
+        border-radius: 30px;
         -webkit-font-smoothing: antialiased;
         backface-visibility: hidden;
     }
