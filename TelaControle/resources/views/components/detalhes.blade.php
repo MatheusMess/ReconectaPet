@@ -156,12 +156,75 @@
         </div>
 
         <div class="botao">
-            @if($caso == 10) 
-                <button id="reso" class="btn-caso">Aceitar</button>
-                <button id="aban" class="btn-caso">Recusar</button>
+            @if($caso == 10)
+                <form action="{{ route('animal.aceitar') }}" method="POST" style="display:inline">
+                    @csrf
+                    <input type="hidden" name="id" value="{{ $animal['id'] }}">
+                    <button type="submit" id="reso" class="btn-caso">Aceitar</button>
+                </form>
+
+                <form action="{{ route('animal.recusar') }}" method="POST" style="display:inline">
+                    @csrf
+                    <input type="hidden" name="id" value="{{ $animal['id'] }}">
+                    <button type="submit" id="aban" class="btn-caso">Recusar</button>
+                </form>
             @elseif($caso == 11)
-                <button id="reso" class="btn-caso">Resolvido</button>
-                <button id="aban" class="btn-caso">Inativar</button>
+                <form action="{{ route('animal.resolver') }}" method="POST" style="display:inline">
+                    @csrf
+                    <input type="hidden" name="id" value="{{ $animal['id'] }}">
+                    <button type="submit" id="reso" class="btn-caso">Resolvido</button>
+                </form>
+
+                <form action="{{ route('animal.inativar') }}" method="POST" style="display:inline">
+                    @csrf
+                    <input type="hidden" name="id" value="{{ $animal['id'] }}">
+                    <button type="submit" id="aban" class="btn-caso">Inativar</button>
+                </form>
+            @endif
+
+            {{-- Versão alternativa (casos menores) --}}
+            @if($caso == 5 || $caso == 6 || $caso == 7)
+                <form action="/animal/aceitar" method="POST" style="display:inline">
+                    @csrf
+                    <input type="hidden" name="id" value="{{ $animal['id'] }}">
+                    <button type="submit" id="reso" class="btn-caso">Aceitar</button>
+                </form>
+
+                <form action="{{ route('animal.recusar') }}" method="POST" style="display:inline">
+                    @csrf
+                    <input type="hidden" name="id" value="{{ $animal['id'] }}">
+                    <button type="submit" id="aban" class="btn-caso">Recusar</button>
+                </form>
+            @endif
+
+            @if($caso == 1 || $caso == 2)
+                <form action="{{ route('animal.resolver') }}" method="POST" style="display:inline">
+                    @csrf
+                    <input type="hidden" name="id" value="{{ $animal['id'] }}">
+                    <button type="submit" id="reso" class="btn-caso">Resolvido</button>
+                </form>
+
+                <form action="{{ route('animal.inativar') }}" method="POST" style="display:inline">
+                    @csrf
+                    <input type="hidden" name="id" value="{{ $animal['id'] }}">
+                    <button type="submit" id="aban" class="btn-caso">Inativar</button>
+                </form>
+            @endif
+
+            @if($caso == 3)
+                <form action="{{ route('animal.reativar') }}" method="POST" style="display:inline">
+                    @csrf
+                    <input type="hidden" name="id" value="{{ $animal['id'] }}">
+                    <button type="submit" id="aban" class="btn-caso">Reativar Caso</button>
+                </form>
+            @endif
+
+            @if($caso == 4)
+                <form action="{{ route('animal.reativar') }}" method="POST" style="display:inline">
+                    @csrf
+                    <input type="hidden" name="id" value="{{ $animal['id'] }}">
+                    <button type="submit" id="reso" class="btn-caso">Reativar Caso</button>
+                </form>
             @endif
         </div>
     </div>
@@ -177,12 +240,17 @@
             <img src="{{ file_exists(public_path('images/animais/'.$animal['id'].'/imagem4.png')) ? asset('images/animais/'.$animal['id'].'/imagem4.png') : asset('images/animais/noimg.jpg') }}" alt="{{ $animal['tipo'].' '.$animal['nome'] ?? $animal['tipo'] }}">
         </div>
         @if(!$animal['nome'])
-            <span id="snome" class="center">(Sem coleira)</span>
+            <span id="snome" >(Sem coleira)</span>
         @endif
         @if($animal['nome'])
-            <span id="nome" class="center"><b>{{ $animal['nome']}}</b></span>
+            <span id="nome" ><b>{{ $animal['nome']}}</b></span>
         @endif
-        
+        <ul class="caso">
+            <li>
+                <b>Situação: </b>{{ $animal['situacao'] }}
+            </li>
+            <li id="caso"><b>Caso {{ $animal['status'] }}</b></li>
+        </ul>
     </div>
     <!--
     caso [dap] = 1
@@ -224,8 +292,61 @@
         </div>
         <div class="botao" >
             @if($caso == 5 || $caso == 6 || $caso == 7)
-                <button id="reso" class="btn-caso" >Aceitar</button>
-                <button id="aban" class="btn-caso" >Recusar</button>
+                <form action="{{ route('animal.aceitar') }}" method="POST" style="display:inline">
+                    @csrf
+                    <input type="hidden" name="id" value="{{ $animal['id'] }}">
+                    <button type="submit" id="reso" class="btn-caso">Aceitar</button>
+                </form>
+
+                <form action="{{ route('animal.recusar') }}" method="POST" style="display:inline">
+                    @csrf
+                    <input type="hidden" name="id" value="{{ $animal['id'] }}">
+                    <button type="submit" id="aban" class="btn-caso">Recusar</button>
+                </form>
+            @endif
+
+            @if($caso == 1 || $caso == 2)
+                <form action="{{ route('animal.resolver') }}" method="POST" style="display:inline">
+                    @csrf
+                    <input type="hidden" name="id" value="{{ $animal['id'] }}">
+                    <button type="submit" id="reso" class="btn-caso">Resolvido</button>
+                </form>
+
+                <form action="{{ route('animal.inativar') }}" method="POST" style="display:inline">
+                    @csrf
+                    <input type="hidden" name="id" value="{{ $animal['id'] }}">
+                    <button type="submit" id="aban" class="btn-caso">Inativar</button>
+                </form>
+            @endif
+
+            @if($caso == 3)
+                <form action="{{ route('animal.reativar') }}" method="POST" style="display:inline">
+                    @csrf
+                    <input type="hidden" name="id" value="{{ $animal['id'] }}">
+                    <button type="submit" id="aban" class="btn-caso">Reativar Caso</button>
+                </form>
+            @endif
+
+            @if($caso == 4)
+                <form action="{{ route('animal.reativar') }}" method="POST" style="display:inline">
+                    @csrf
+                    <input type="hidden" name="id" value="{{ $animal['id'] }}">
+                    <button type="submit" id="reso" class="btn-caso">Reativar Caso</button>
+                </form>
+            @endif
+            {{--
+            @if($caso == 5 || $caso == 6 || $caso == 7)
+                <form action="{{ route('animal.aceitar') }}" method="POST" style="display:inline">
+                    @csrf
+                    <input type="hidden" name="id" value="{{ $animal['id'] }}">
+                    <button type="submit" id="reso" class="btn-caso">Aceitar</button>
+                </form>
+
+                <form action="{{ route('animal.recusar') }}" method="POST" style="display:inline">
+                    @csrf
+                    <input type="hidden" name="id" value="{{ $animal['id'] }}">
+                    <button type="submit" id="aban" class="btn-caso">Recusar</button>
+                </form>
             @endif
             
             @if($caso == 1 || $caso == 7)
@@ -240,7 +361,7 @@
             @if($caso == 4)
                 <button id="reso" class="btn-caso" >Reativar Caso</button>
             @endif
-            
+            --}}
         </div>
     </div>
 </div>

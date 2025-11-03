@@ -83,3 +83,10 @@ Route::get('/animais-perdidos', [AnimalController::class, 'listarPerdidos'])->na
 Route::get('/animais-encontrados', [AnimalController::class, 'listarEncontrados'])->name('AnimaisEncontrados');
 Route::get('/casos-inativados', [AnimalController::class, 'listarInativados'])->name('CasosInativados');
 Route::get('/casos-resolvidos', [AnimalController::class, 'listarResolvidos'])->name('CasosResolvidos');
+
+// ações sobre o animal (POST para não expor id na URL)
+Route::post('/aceitar-caso', [AnimalController::class, 'aceitar'])->name('animal.aceitar');
+Route::post('/recusar-caso', [AnimalController::class, 'recusar'])->name('animal.recusar');
+Route::post('/resolver-caso', [AnimalController::class, 'resolver'])->name('animal.resolver');
+Route::post('/inativar-caso', [AnimalController::class, 'inativar'])->name('animal.inativar');
+Route::post('/reativar-caso', [AnimalController::class, 'reativar'])->name('animal.reativar');

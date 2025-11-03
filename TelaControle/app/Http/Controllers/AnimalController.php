@@ -117,7 +117,7 @@ class AnimalController extends Controller
         }
 
 
-                return view('site.detalheAnimal', ['animal' => $animal, 'caso' => $caso]);
+        return view('site.detalheAnimal', ['animal' => $animal, 'caso' => $caso]);
 
     }
 
@@ -153,5 +153,48 @@ class AnimalController extends Controller
         $filters = array_merge(['situacao'=>'','status'=>'','animal'=>'','sexo'=>''], $filters);
 
         return view('site.todosAnimais', compact('animais','filters'));
+    }
+
+    protected function changeStatus(Request $request, string $status)
+    {
+        $data = $request->validate([
+            'id' => 'required|integer|exists:animais,id',
+        ]);
+
+        $animal = Animal::findOrFail($data['id']);
+        $animal->status = $status;
+        $animal->save();
+
+        return $this->DetalheAnimal($request);
+    }
+
+    public function aceitar(Request $request)
+    {
+        // aprovar caso pendente -> ativo
+        return $this->changeStatus($request, 'ativo');
+    }
+
+    public function recusar(Request $request)
+    {
+        // recusar -> inativo (ou ajuste conforme necessidade)
+        return $this->changeStatus($request, 'inativo');
+    }
+
+    public function resolver(Request $request)
+    {
+        // marcar como resolvido
+        return $this->changeStatus($request, 'resolvido');
+    }
+
+    public function inativar(Request $request)
+    {
+        // inativar caso
+        return $this->changeStatus($request, 'inativo');
+    }
+
+    public function reativar(Request $request)
+    {
+        // reativar caso -> ativo
+        return $this->changeStatus($request, 'ativo');
     }
 }

@@ -79,12 +79,7 @@
         color: #fff; /* cor do texto */
         display: inline-block;
         font-weight: 700;
-        -webkit-text-stroke: 1px rgba(0,0,0,0.88); /* contorno para WebKit */
-        text-shadow:
-            1px 1px 0 rgba(0,0,0,0.65),
-            -1px -1px 0 rgba(0,0,0,0.65),
-            1px -1px 0 rgba(0,0,0,0.65),
-            -1px 1px 0 rgba(0,0,0,0.65); /* fallback para navegadores sem text-stroke */
+        -webkit-text-stroke: 1.5px rgba(0,0,0,0.88); /* contorno para WebKit */
         padding: 2px 6px;
         border-radius: 30px;
         -webkit-font-smoothing: antialiased;

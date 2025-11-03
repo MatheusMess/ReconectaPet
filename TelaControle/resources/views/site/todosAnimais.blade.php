@@ -1,7 +1,7 @@
 @extends('site.layout')
 @section('title','Todos Animais')
 @section('conteudo')
-    <h3 class="center">Todos Animais</h3>
+    <h3 id="titulo" class="center">Todos Animais</h3>
 
     @php
         $f = array_merge(

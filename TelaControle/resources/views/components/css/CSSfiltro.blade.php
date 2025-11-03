@@ -16,6 +16,9 @@
         align-items: center;
 
     }
+    .pai{
+        border-radius: 0 0 50px 50px;
+    }
 
     #filtro {
         display: flex;
