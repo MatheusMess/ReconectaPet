@@ -124,7 +124,7 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
       imagens: todasImagens,
       cidade: cidadeController.text,
       bairro: bairroController.text,
-
+      donoId: "usuario_atual", // Será substituído pela tela principal
       // CAMPOS ESPECÍFICOS PARA ANIMAL PERDIDO
       ultimoLocalVisto: ultimoLocalController.text,
       enderecoDesaparecimento: enderecoController.text,
@@ -174,6 +174,14 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
             _buildSectionTitle("Dados do Animal", fontSize: 14),
             const SizedBox(height: 12),
 
+            // Nome
+            _buildTextField(
+              controller: nomeController,
+              label: "Nome do animal *",
+              hint: "Ex: Rex, Luna, Bob",
+            ),
+            const SizedBox(height: 16),
+
             // Raça
             _buildTextField(
               controller: racaController,
@@ -192,14 +200,6 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
               hint: "Espécie *",
               items: ["Cachorro", "Gato"],
               onChanged: (value) => setState(() => especieSelecionada = value),
-            ),
-            const SizedBox(height: 16),
-
-            // Nome
-            _buildTextField(
-              controller: nomeController,
-              label: "Nome do animal *",
-              hint: "Ex: Rex, Luna, Bob",
             ),
             const SizedBox(height: 16),
 
@@ -490,7 +490,8 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
       controller: observacoesController,
       decoration: const InputDecoration(
         labelText: "Observações adicionais *",
-        hintText: "Descreva características marcantes, comportamento, etc.",
+        hintText:
+            "Descreva características marcantes, comportamento, detalhes importantes para identificação, etc.",
         border: OutlineInputBorder(),
         alignLabelWithHint: true,
       ),
@@ -503,6 +504,7 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
     required TextEditingController controller,
     required String label,
     required String hint,
+    TextInputType keyboardType = TextInputType.text,
   }) {
     return TextField(
       controller: controller,
@@ -515,6 +517,7 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
           vertical: 14,
         ),
       ),
+      keyboardType: keyboardType,
     );
   }
 

@@ -24,7 +24,6 @@ class _TelaCadastroAnimalEncontradoState
   final TextEditingController bairroController = TextEditingController();
   final TextEditingController enderecoController = TextEditingController();
   final TextEditingController dataEncontroController = TextEditingController();
-  final TextEditingController contatoController = TextEditingController();
 
   String? especieSelecionada;
   String? sexoSelecionado;
@@ -90,8 +89,7 @@ class _TelaCadastroAnimalEncontradoState
         cidadeController.text.isEmpty ||
         bairroController.text.isEmpty ||
         enderecoController.text.isEmpty ||
-        dataEncontroController.text.isEmpty ||
-        contatoController.text.isEmpty) {
+        dataEncontroController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Preencha todos os campos obrigatórios"),
@@ -128,13 +126,12 @@ class _TelaCadastroAnimalEncontradoState
       imagens: todasImagens,
       cidade: cidadeController.text,
       bairro: bairroController.text,
-
+      donoId: "usuario_atual", // Será substituído pela tela principal
       // CAMPOS ESPECÍFICOS PARA ANIMAL ENCONTRADO
       localEncontro: localEncontroController.text,
       enderecoEncontro: enderecoController.text,
       dataEncontro: dataEncontroController.text,
       situacaoSaude: situacaoSaude,
-      contatoResponsavel: contatoController.text,
 
       // Identificar como animal encontrado
       tipo: 'encontrado',
@@ -274,19 +271,6 @@ class _TelaCadastroAnimalEncontradoState
               controller: dataEncontroController,
               label: "Data do encontro *",
               hint: "Ex: 12/08/2025",
-            ),
-            const SizedBox(height: 20),
-
-            // CONTATO
-            _buildSectionTitle("Contato para Devolução", fontSize: 14),
-            const SizedBox(height: 12),
-
-            // Contato
-            _buildTextField(
-              controller: contatoController,
-              label: "Telefone para contato *",
-              hint: "Ex: (11) 99999-9999",
-              keyboardType: TextInputType.phone,
             ),
             const SizedBox(height: 20),
 

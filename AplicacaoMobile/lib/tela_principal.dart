@@ -4,6 +4,7 @@ import 'animal.dart';
 import 'navegacao.dart';
 import 'autenticacao.dart';
 import 'tela_cadastro_animal_encontrado.dart';
+import 'tela_editar_animal.dart';
 
 class TelaPrincipal extends StatefulWidget {
   const TelaPrincipal({super.key});
@@ -17,10 +18,11 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
   final List<Animal> animaisEncontrados = [];
   int _indiceSelecionado = 0;
   final AuthService _authService = AuthService();
+  bool _carregando = true;
 
   // Filtros
-  String _filtroTipo = 'Todos'; // 'Todos', 'Perdidos', 'Encontrados'
-  String _filtroEspecie = 'Todos'; // 'Todos', 'Cachorro', 'Gato'
+  String _filtroTipo = 'Todos';
+  String _filtroEspecie = 'Todos';
   String _filtroCidade = 'Todas';
   String _filtroRaca = 'Todas';
   String _filtroCor = 'Todas';
@@ -33,25 +35,48 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
   @override
   void initState() {
     super.initState();
-    _carregarAnimaisExemplo();
-    _carregarFiltros();
+    _carregarAnimais();
   }
 
-  void _carregarAnimaisExemplo() {
+  void _carregarAnimais() async {
     setState(() {
-      animaisPerdidos.addAll(
-        Animal.exemplos.where((animal) => animal.isPerdido),
-      );
-      animaisEncontrados.addAll(
-        Animal.exemplos.where((animal) => animal.isEncontrado),
-      );
+      _carregando = true;
     });
+
+    try {
+      await AnimalService.carregarDadosIniciais();
+      final todosAnimais = await AnimalService.buscarAnimais();
+
+      setState(() {
+        animaisPerdidos.clear();
+        animaisEncontrados.clear();
+
+        for (var animal in todosAnimais) {
+          if (animal.isPerdido) {
+            animaisPerdidos.add(animal);
+          } else {
+            animaisEncontrados.add(animal);
+          }
+        }
+
+        _carregarFiltros();
+        _carregando = false;
+      });
+    } catch (e) {
+      print('Erro ao carregar animais: $e');
+      setState(() {
+        _carregando = false;
+      });
+    }
+  }
+
+  void _atualizarTela() {
+    _carregarAnimais();
   }
 
   void _carregarFiltros() {
     final todosAnimais = [...animaisPerdidos, ...animaisEncontrados];
 
-    // Carregar cidades únicas
     cidades = ['Todas'];
     cidades.addAll(
       todosAnimais
@@ -61,7 +86,6 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
           .toList(),
     );
 
-    // Carregar raças únicas
     racas = ['Todas'];
     racas.addAll(
       todosAnimais
@@ -71,7 +95,6 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
           .toList(),
     );
 
-    // Carregar cores únicas
     cores = ['Todas'];
     cores.addAll(
       todosAnimais
@@ -82,21 +105,39 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
     );
   }
 
-  void adicionarAnimal(Animal animal) {
-    setState(() {
-      if (animal.isPerdido) {
-        animaisPerdidos.add(animal);
-      } else {
-        animaisEncontrados.add(animal);
-      }
-      _carregarFiltros(); // Atualizar filtros quando adicionar novo animal
-    });
+  Future<void> adicionarAnimal(Animal animal) async {
+    try {
+      final usuario = _authService.usuarioLogado;
+      final animalComDono = animal.copyWith(
+        donoId: usuario?.id ?? 'usuario_desconhecido',
+        userNome: usuario?.nome,
+        userTelefone: usuario?.telefone,
+        userEmail: usuario?.email,
+      );
+
+      await AnimalService.cadastrarAnimal(animalComDono);
+      _atualizarTela();
+      _mostrarMensagem('${animal.nome} cadastrado com sucesso!');
+    } catch (e) {
+      _mostrarMensagem('Erro ao cadastrar animal: $e');
+    }
+  }
+
+  Future<void> _editarAnimal(Animal animal) async {
+    final resultado = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => TelaEditarAnimal(animal: animal)),
+    );
+
+    if (resultado == true) {
+      _atualizarTela();
+      _mostrarMensagem('Animal atualizado com sucesso!');
+    }
   }
 
   List<Animal> _getAnimaisFiltrados() {
     List<Animal> listaCompleta = [...animaisPerdidos, ...animaisEncontrados];
 
-    // Aplicar filtros
     if (_filtroTipo != 'Todos') {
       listaCompleta = listaCompleta.where((animal) {
         return _filtroTipo == 'Perdidos'
@@ -148,7 +189,6 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
         ),
         child: Column(
           children: [
-            // Cabeçalho
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -197,7 +237,6 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Filtro de Tipo
                     _buildFiltroSection(
                       "Tipo de Animal",
                       _buildDropdownFiltro(
@@ -211,7 +250,6 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
 
                     const SizedBox(height: 20),
 
-                    // Filtro de Espécie
                     _buildFiltroSection(
                       "Espécie",
                       _buildDropdownFiltro(
@@ -225,7 +263,6 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
 
                     const SizedBox(height: 20),
 
-                    // Filtro de Cidade
                     _buildFiltroSection(
                       "Cidade",
                       _buildDropdownFiltro(
@@ -239,7 +276,6 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
 
                     const SizedBox(height: 20),
 
-                    // Filtro de Raça
                     _buildFiltroSection(
                       "Raça",
                       _buildDropdownFiltro(
@@ -253,7 +289,6 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
 
                     const SizedBox(height: 20),
 
-                    // Filtro de Cor
                     _buildFiltroSection(
                       "Cor",
                       _buildDropdownFiltro(
@@ -267,16 +302,13 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
 
                     const SizedBox(height: 30),
 
-                    // Contador de resultados
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: Colors.grey[50],
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: const Color.fromARGB(255, 218, 214, 214),
-                        ),
+                        border: Border.all(color: Colors.grey),
                       ),
                       child: Column(
                         children: [
@@ -302,7 +334,6 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
 
                     const SizedBox(height: 20),
 
-                    // Botão Aplicar
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -344,6 +375,28 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
       _filtroCidade = 'Todas';
       _filtroRaca = 'Todas';
       _filtroCor = 'Todas';
+    });
+  }
+
+  void _removerFiltro(String tipo) {
+    setState(() {
+      switch (tipo) {
+        case 'Tipo':
+          _filtroTipo = 'Todos';
+          break;
+        case 'Espécie':
+          _filtroEspecie = 'Todos';
+          break;
+        case 'Cidade':
+          _filtroCidade = 'Todas';
+          break;
+        case 'Raça':
+          _filtroRaca = 'Todas';
+          break;
+        case 'Cor':
+          _filtroCor = 'Todas';
+          break;
+      }
     });
   }
 
@@ -457,266 +510,359 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(mensagem),
-        duration: const Duration(seconds: 2),
+        duration: const Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,
       ),
     );
   }
 
   Widget _construirListaAnimais() {
+    if (_carregando) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     final animaisFiltrados = _getAnimaisFiltrados();
 
     if (animaisFiltrados.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.search_off, size: 80, color: Colors.grey[400]),
-            const SizedBox(height: 16),
-            const Text(
-              "Nenhum animal encontrado",
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey,
-                fontWeight: FontWeight.w500,
+      return Column(
+        children: [
+          _buildHeaderFiltros(),
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.search_off, size: 80, color: Colors.grey[400]),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "Nenhum animal encontrado",
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "Tente ajustar os filtros ou cadastrar um novo animal",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    onPressed: mostrarPopupCadastro,
+                    icon: const Icon(Icons.add),
+                    label: const Text("Cadastrar Animal"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.cyan,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 8),
-            const Text(
-              "Tente ajustar os filtros ou cadastrar um novo animal",
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: mostrarPopupCadastro,
-              icon: const Icon(Icons.add),
-              label: const Text("Cadastrar Animal"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.cyan,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       );
     }
 
-    return RefreshIndicator(
-      onRefresh: () async {
-        setState(() {});
-        await Future.delayed(const Duration(seconds: 1));
-      },
-      child: ListView.builder(
-        itemCount: animaisFiltrados.length,
-        itemBuilder: (context, index) {
-          final animal = animaisFiltrados[index];
-          return Container(
-            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Card(
-              elevation: 3,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(16),
-                onTap: () {
-                  Navegacao.irParaDetalhesAnimal(context, animal);
-                },
-                onLongPress: () {
-                  _mostrarOpcoesAnimal(context, index, animal.isPerdido);
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
+    return Column(
+      children: [
+        _buildHeaderFiltros(),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: () async {
+              _atualizarTela();
+              await Future.delayed(const Duration(seconds: 1));
+            },
+            child: ListView.builder(
+              itemCount: animaisFiltrados.length,
+              itemBuilder: (context, index) {
+                final animal = animaisFiltrados[index];
+                return _buildAnimalCard(animal, index);
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAnimalCard(Animal animal, int index) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Card(
+        elevation: 3,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            Navegacao.irParaDetalhesAnimal(context, animal);
+          },
+          // REMOVIDO: onLongPress - não mostra mais opções na tela inicial
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade300, width: 1),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: _construirImagemAnimal(animal),
+                  ),
+                ),
+                const SizedBox(width: 16),
+
+                Expanded(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        width: 100,
-                        height: 100,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
+                          color: animal.isPerdido
+                              ? Colors.red.withOpacity(0.1)
+                              : Colors.green.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4),
                           border: Border.all(
-                            color: Colors.grey.shade300,
+                            color: animal.isPerdido ? Colors.red : Colors.green,
                             width: 1,
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
                         ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: _construirImagemAnimal(animal),
+                        child: Text(
+                          animal.isPerdido ? 'PERDIDO' : 'ENCONTRADO',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: animal.isPerdido ? Colors.red : Colors.green,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(height: 6),
 
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: animal.isPerdido
-                                    ? Colors.red.withOpacity(0.1)
-                                    : Colors.green.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(4),
-                                border: Border.all(
-                                  color: animal.isPerdido
-                                      ? Colors.red
-                                      : Colors.green,
-                                  width: 1,
-                                ),
-                              ),
-                              child: Text(
-                                animal.isPerdido ? 'PERDIDO' : 'ENCONTRADO',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: animal.isPerdido
-                                      ? Colors.red
-                                      : Colors.green,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    animal.nome,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: _getCorSexo(animal.sexo),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    animal.sexo,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-
-                            Text(
-                              '${animal.especie} • ${animal.raca}',
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              animal.nome,
                               style: const TextStyle(
-                                fontSize: 15,
-                                color: Colors.grey,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
                               ),
                             ),
-                            const SizedBox(height: 4),
-
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.cyan.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                animal.cor,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.cyan,
-                                  fontWeight: FontWeight.w500,
-                                ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _getCorSexo(animal.sexo),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              animal.sexo,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(height: 8),
-
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.location_on,
-                                  size: 14,
-                                  color: Colors.grey[600],
-                                ),
-                                const SizedBox(width: 4),
-                                Expanded(
-                                  child: Text(
-                                    animal.localizacaoCompleta,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Colors.grey[600],
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.calendar_today,
-                                  size: 12,
-                                  color: Colors.grey[500],
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  animal.isPerdido
-                                      ? 'Desaparecido em: ${animal.dataDisplay}'
-                                      : 'Encontrado em: ${animal.dataDisplay}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey[500],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
+                      const SizedBox(height: 6),
 
-                      const Padding(
-                        padding: EdgeInsets.only(left: 8),
-                        child: Icon(
-                          Icons.arrow_forward_ios,
-                          size: 16,
+                      Text(
+                        '${animal.especie} • ${animal.raca}',
+                        style: const TextStyle(
+                          fontSize: 15,
                           color: Colors.grey,
                         ),
+                      ),
+                      const SizedBox(height: 4),
+
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.cyan.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          animal.cor,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.cyan,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on,
+                            size: 14,
+                            color: Colors.grey[600],
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              animal.localizacaoCompleta,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey[600],
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today,
+                            size: 12,
+                            color: Colors.grey[500],
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            animal.isPerdido
+                                ? 'Desaparecido em: ${animal.dataDisplay}'
+                                : 'Encontrado em: ${animal.dataDisplay}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
-              ),
+
+                // CORRIGIDO: Removido o ícone de seta que causava overlay
+                // const Padding(
+                //   padding: EdgeInsets.only(left: 8),
+                //   child: Icon(
+                //     Icons.arrow_forward_ios,
+                //     size: 16,
+                //     color: Colors.grey,
+                //   ),
+                // ),
+              ],
             ),
-          );
-        },
+          ),
+        ),
       ),
+    );
+  }
+
+  Widget _buildHeaderFiltros() {
+    final temFiltrosAtivos =
+        _filtroTipo != 'Todos' ||
+        _filtroEspecie != 'Todos' ||
+        _filtroCidade != 'Todas' ||
+        _filtroRaca != 'Todas' ||
+        _filtroCor != 'Todas';
+
+    if (!temFiltrosAtivos) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        border: Border(bottom: BorderSide(color: Colors.grey[300]!)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.filter_list, size: 18, color: Colors.cyan),
+              const SizedBox(width: 8),
+              const Text(
+                "Filtros Ativos",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.cyan,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Wrap(spacing: 8, runSpacing: 4, children: _buildChipsFiltros()),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _buildChipsFiltros() {
+    final chips = <Widget>[];
+
+    if (_filtroTipo != 'Todos') {
+      chips.add(_buildChipFiltro('Tipo: $_filtroTipo', Colors.blue, 'Tipo'));
+    }
+    if (_filtroEspecie != 'Todos') {
+      chips.add(
+        _buildChipFiltro('Espécie: $_filtroEspecie', Colors.green, 'Espécie'),
+      );
+    }
+    if (_filtroCidade != 'Todas') {
+      chips.add(
+        _buildChipFiltro('Cidade: $_filtroCidade', Colors.orange, 'Cidade'),
+      );
+    }
+    if (_filtroRaca != 'Todas') {
+      chips.add(_buildChipFiltro('Raça: $_filtroRaca', Colors.purple, 'Raça'));
+    }
+    if (_filtroCor != 'Todas') {
+      chips.add(_buildChipFiltro('Cor: $_filtroCor', Colors.red, 'Cor'));
+    }
+
+    return chips;
+  }
+
+  Widget _buildChipFiltro(String label, Color color, String tipoFiltro) {
+    return Chip(
+      label: Text(
+        label,
+        style: const TextStyle(fontSize: 12, color: Colors.white),
+      ),
+      backgroundColor: color,
+      deleteIcon: const Icon(Icons.close, size: 16, color: Colors.white),
+      onDeleted: () {
+        _removerFiltro(tipoFiltro);
+      },
     );
   }
 
@@ -766,54 +912,9 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
     }
   }
 
-  void _mostrarOpcoesAnimal(BuildContext context, int index, bool isPerdido) {
-    final animaisFiltrados = _getAnimaisFiltrados();
-    final animal = animaisFiltrados[index];
+  // REMOVIDO: _mostrarOpcoesAnimal - não mostra mais opções na tela inicial
 
-    // Encontrar o índice real na lista original
-    final listaOriginal = isPerdido ? animaisPerdidos : animaisEncontrados;
-    final animalIndex = listaOriginal.indexWhere((a) => a.id == animal.id);
-
-    if (animalIndex == -1) return;
-
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => Wrap(
-        children: [
-          ListTile(
-            leading: const Icon(Icons.visibility, color: Colors.blue),
-            title: const Text("Ver Detalhes"),
-            onTap: () {
-              Navigator.pop(context);
-              Navegacao.irParaDetalhesAnimal(context, animal);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.share, color: Colors.green),
-            title: const Text("Compartilhar"),
-            onTap: () {
-              Navigator.pop(context);
-              _mostrarMensagem('Compartilhamento em desenvolvimento');
-            },
-          ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.delete, color: Colors.red),
-            title: const Text("Remover Animal"),
-            onTap: () {
-              Navigator.pop(context);
-              _confirmarRemocaoAnimal(animalIndex, isPerdido);
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _confirmarRemocaoAnimal(int index, bool isPerdido) {
-    final lista = isPerdido ? animaisPerdidos : animaisEncontrados;
-    final animal = lista[index];
-
+  void _confirmarRemocaoAnimal(Animal animal) async {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -825,13 +926,15 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
             child: const Text("Cancelar"),
           ),
           TextButton(
-            onPressed: () {
-              setState(() {
-                lista.removeAt(index);
-                _carregarFiltros(); // Atualizar filtros após remoção
-              });
+            onPressed: () async {
               Navigator.pop(context);
-              _mostrarMensagem('${animal.nome} removido com sucesso');
+              try {
+                await AnimalService.excluirAnimal(animal.id);
+                _atualizarTela();
+                _mostrarMensagem('${animal.nome} removido com sucesso');
+              } catch (e) {
+                _mostrarMensagem('Erro ao remover animal: $e');
+              }
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text("Remover"),
@@ -913,7 +1016,9 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
                     const SizedBox(height: 12),
                     _infoPerfil(
                       "Membro desde",
-                      "Outubro 2024",
+                      usuario?.dataCriacao != null
+                          ? "${usuario!.dataCriacao.day}/${usuario.dataCriacao.month}/${usuario.dataCriacao.year}"
+                          : "Outubro 2024",
                       Icons.calendar_today,
                     ),
                   ],
@@ -949,14 +1054,13 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
                   ),
                   const Divider(height: 1),
                   ListTile(
-                    leading: const Icon(Icons.security, color: Colors.green),
-                    title: const Text("Privacidade e Segurança"),
+                    leading: const Icon(
+                      Icons.work_history,
+                      color: Colors.purple,
+                    ),
+                    title: const Text("Meus Casos"),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () {
-                      _mostrarMensagem(
-                        'Configurações de privacidade em desenvolvimento',
-                      );
-                    },
+                    onTap: _mostrarMeusCasos,
                   ),
                 ],
               ),
@@ -1017,23 +1121,173 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
     );
   }
 
+  void _mostrarMeusCasos() async {
+    final usuario = _authService.usuarioLogado;
+    if (usuario == null) return;
+
+    try {
+      final meusAnimais = await AnimalService.meusAnimais(usuario.id);
+
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.work_history, color: Colors.purple),
+              SizedBox(width: 8),
+              Text("Meus Casos"),
+            ],
+          ),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: meusAnimais.isEmpty
+                ? const Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.cases_outlined, size: 60, color: Colors.grey),
+                      SizedBox(height: 16),
+                      Text(
+                        "Nenhum caso cadastrado",
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        "Cadastre seu primeiro animal na tela inicial",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                    ],
+                  )
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        "Toque em um animal para editá-lo",
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      ),
+                      const SizedBox(height: 12),
+                      ...meusAnimais
+                          .map(
+                            (animal) => Container(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey.shade300),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: ListTile(
+                                leading: Container(
+                                  width: 50,
+                                  height: 50,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    color: Colors.grey[100],
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: _construirImagemAnimal(animal),
+                                  ),
+                                ),
+                                title: Text(
+                                  animal.nome,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('${animal.especie} • ${animal.raca}'),
+                                    const SizedBox(height: 4),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: animal.isPerdido
+                                            ? Colors.orange.withOpacity(0.1)
+                                            : Colors.green.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(4),
+                                        border: Border.all(
+                                          color: animal.isPerdido
+                                              ? Colors.orange
+                                              : Colors.green,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        animal.isPerdido
+                                            ? 'PERDIDO'
+                                            : 'ENCONTRADO',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          color: animal.isPerdido
+                                              ? Colors.orange
+                                              : Colors.green,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    // NOVO: Ícone de lixeira para excluir
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.delete,
+                                        size: 20,
+                                        color: Colors.red,
+                                      ),
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                        _confirmarRemocaoAnimal(animal);
+                                      },
+                                    ),
+                                    const SizedBox(width: 8),
+                                    // Ícone de edição
+                                    const Icon(
+                                      Icons.edit,
+                                      size: 20,
+                                      color: Colors.grey,
+                                    ),
+                                  ],
+                                ),
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  _editarAnimal(animal);
+                                },
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ],
+                  ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Fechar"),
+            ),
+            if (meusAnimais.isNotEmpty)
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  setState(() {
+                    _indiceSelecionado = 0;
+                  });
+                },
+                child: const Text("Ver Todos"),
+              ),
+          ],
+        ),
+      );
+    } catch (e) {
+      _mostrarMensagem('Erro ao carregar meus casos: $e');
+    }
+  }
+
   Widget _construirTelaSobre() {
-    // Incluir todos os animais (perdidos + encontrados)
-    final todosAnimais = [...animaisPerdidos, ...animaisEncontrados];
-
-    final animaisCachorro = todosAnimais
-        .where((animal) => animal.especie.toLowerCase() == 'cachorro')
-        .length;
-    final animaisGato = todosAnimais
-        .where((animal) => animal.especie.toLowerCase() == 'gato')
-        .length;
-    final outrosAnimais = todosAnimais.length - animaisCachorro - animaisGato;
-
-    // Estatísticas por tipo
-    final animaisPerdidosCount = animaisPerdidos.length;
-    final animaisEncontradosCount = animaisEncontrados.length;
-    final totalAnimais = todosAnimais.length;
-
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -1074,7 +1328,6 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
             ),
             const SizedBox(height: 30),
 
-            // Estatísticas
             Card(
               elevation: 2,
               child: Padding(
@@ -1090,56 +1343,76 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
                       ),
                     ),
                     const SizedBox(height: 16),
+                    FutureBuilder<Map<String, int>>(
+                      future: AnimalService.obterEstatisticas(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const CircularProgressIndicator();
+                        }
 
-                    // Primeira linha: Totais
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _construirEstatistica(
-                          "Total",
-                          totalAnimais,
-                          Icons.pets,
-                        ),
-                        _construirEstatistica(
-                          "Perdidos",
-                          animaisPerdidosCount,
-                          Icons.warning_amber,
-                          cor: Colors.orange,
-                        ),
-                        _construirEstatistica(
-                          "Encontrados",
-                          animaisEncontradosCount,
-                          Icons.search,
-                          cor: Colors.green,
-                        ),
-                      ],
-                    ),
+                        final stats =
+                            snapshot.data ??
+                            {
+                              'total': 0,
+                              'perdidos': 0,
+                              'encontrados': 0,
+                              'cachorros': 0,
+                              'gatos': 0,
+                              'recentes': 0,
+                            };
 
-                    const SizedBox(height: 16),
-
-                    // Segunda linha: Espécies
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _construirEstatistica(
-                          "Cachorros",
-                          animaisCachorro,
-                          Icons.pets,
-                          cor: Colors.brown,
-                        ),
-                        _construirEstatistica(
-                          "Gatos",
-                          animaisGato,
-                          Icons.pets,
-                          cor: Colors.grey,
-                        ),
-                        _construirEstatistica(
-                          "Outros",
-                          outrosAnimais,
-                          Icons.pets,
-                          cor: Colors.purple,
-                        ),
-                      ],
+                        return Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                _construirEstatistica(
+                                  "Total",
+                                  stats['total']!,
+                                  Icons.pets,
+                                ),
+                                _construirEstatistica(
+                                  "Perdidos",
+                                  stats['perdidos']!,
+                                  Icons.warning_amber,
+                                  cor: Colors.orange,
+                                ),
+                                _construirEstatistica(
+                                  "Encontrados",
+                                  stats['encontrados']!,
+                                  Icons.search,
+                                  cor: Colors.green,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                _construirEstatistica(
+                                  "Cachorros",
+                                  stats['cachorros']!,
+                                  Icons.pets,
+                                  cor: Colors.brown,
+                                ),
+                                _construirEstatistica(
+                                  "Gatos",
+                                  stats['gatos']!,
+                                  Icons.pets,
+                                  cor: Colors.grey,
+                                ),
+                                _construirEstatistica(
+                                  "Recentes",
+                                  stats['recentes']!,
+                                  Icons.new_releases,
+                                  cor: Colors.purple,
+                                ),
+                              ],
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -1148,43 +1421,6 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
 
             const SizedBox(height: 16),
 
-            // Informações detalhadas
-            Card(
-              elevation: 2,
-              child: ListTile(
-                leading: const Icon(Icons.location_on, color: Colors.red),
-                title: const Text("Animais por Localização"),
-                subtitle: Text(
-                  "${_contarAnimaisUnicosPorCidade()} cidades diferentes",
-                ),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () {
-                  _mostrarAnimaisPorLocalizacao();
-                },
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Tipos de animais
-            Card(
-              elevation: 2,
-              child: ListTile(
-                leading: const Icon(Icons.category, color: Colors.blue),
-                title: const Text("Distribuição por Tipo"),
-                subtitle: Text(
-                  "$animaisPerdidosCount perdidos • $animaisEncontradosCount encontrados",
-                ),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () {
-                  _mostrarDistribuicaoTipo();
-                },
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Sobre o App
             Card(
               elevation: 2,
               child: Padding(
@@ -1218,45 +1454,6 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
               ),
             ),
 
-            const SizedBox(height: 16),
-
-            // Ajuda e Suporte
-            Card(
-              elevation: 2,
-              child: Column(
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.help, color: Colors.orange),
-                    title: const Text("Ajuda e Suporte"),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () {
-                      Navegacao.irParaAjuda(context);
-                    },
-                  ),
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: const Icon(Icons.privacy_tip, color: Colors.green),
-                    title: const Text("Política de Privacidade"),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () {
-                      _mostrarMensagem(
-                        'Política de privacidade em desenvolvimento',
-                      );
-                    },
-                  ),
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: const Icon(Icons.article, color: Colors.purple),
-                    title: const Text("Termos de Uso"),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () {
-                      _mostrarMensagem('Termos de uso em desenvolvimento');
-                    },
-                  ),
-                ],
-              ),
-            ),
-
             const SizedBox(height: 40),
           ],
         ),
@@ -1281,7 +1478,6 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
     );
   }
 
-  // Método auxiliar atualizado para aceitar cor personalizada
   Widget _construirEstatistica(
     String titulo,
     int quantidade,
@@ -1315,254 +1511,6 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
           textAlign: TextAlign.center,
         ),
       ],
-    );
-  }
-
-  // Método para mostrar distribuição por tipo
-  void _mostrarDistribuicaoTipo() {
-    final todosAnimais = [...animaisPerdidos, ...animaisEncontrados];
-    final animaisPerdidosCount = animaisPerdidos.length;
-    final animaisEncontradosCount = animaisEncontrados.length;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Distribuição por Tipo"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _itemDistribuicao(
-              "🐕 Animais Perdidos",
-              animaisPerdidosCount,
-              Colors.orange,
-              "Procuram seus donos",
-            ),
-            const SizedBox(height: 12),
-            _itemDistribuicao(
-              "🔍 Animais Encontrados",
-              animaisEncontradosCount,
-              Colors.green,
-              "Procuram seus lares",
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.cyan.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.pets, color: Colors.cyan, size: 16),
-                  const SizedBox(width: 8),
-                  Text(
-                    "Total: ${todosAnimais.length} animais",
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.cyan,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Fechar"),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _itemDistribuicao(
-    String titulo,
-    int quantidade,
-    Color cor,
-    String subtitulo,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: cor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: cor.withOpacity(0.3)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: cor, shape: BoxShape.circle),
-            child: Text(
-              quantidade.toString(),
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  titulo,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: cor,
-                    fontSize: 14,
-                  ),
-                ),
-                Text(
-                  subtitulo,
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  int _contarAnimaisUnicosPorCidade() {
-    final todasCidades = [
-      ...animaisPerdidos.map((animal) => animal.cidade),
-      ...animaisEncontrados.map((animal) => animal.cidade),
-    ].toSet();
-    return todasCidades.length;
-  }
-
-  void _mostrarAnimaisPorLocalizacao() {
-    final animaisPorCidade = <String, List<Animal>>{};
-    final todosAnimais = [...animaisPerdidos, ...animaisEncontrados];
-
-    for (final animal in todosAnimais) {
-      if (!animaisPorCidade.containsKey(animal.cidade)) {
-        animaisPorCidade[animal.cidade] = [];
-      }
-      animaisPorCidade[animal.cidade]!.add(animal);
-    }
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Animais por Localização"),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: animaisPorCidade.length,
-            itemBuilder: (context, index) {
-              final cidade = animaisPorCidade.keys.elementAt(index);
-              final animais = animaisPorCidade[cidade]!;
-              return ListTile(
-                leading: const Icon(Icons.location_city, color: Colors.cyan),
-                title: Text(cidade),
-                subtitle: Text('${animais.length} animal(es)'),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 14),
-                onTap: () {
-                  Navigator.pop(context);
-                  _mostrarAnimaisDaCidade(cidade, animais);
-                },
-              );
-            },
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Fechar"),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _mostrarAnimaisDaCidade(String cidade, List<Animal> animais) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Animais em $cidade"),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: animais.length,
-            itemBuilder: (context, index) {
-              final animal = animais[index];
-              return ListTile(
-                leading: Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey.shade300),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: _construirImagemPequena(animal),
-                  ),
-                ),
-                title: Text(animal.nome),
-                subtitle: Text('${animal.raca} - ${animal.bairro}'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navegacao.irParaDetalhesAnimal(context, animal);
-                },
-              );
-            },
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Fechar"),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _construirImagemPequena(Animal animal) {
-    if (animal.imagens.isNotEmpty) {
-      final primeiraImagem = animal.imagens[0];
-      if (primeiraImagem.startsWith('assets/')) {
-        return Image.asset(
-          primeiraImagem,
-          width: 50,
-          height: 50,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return Container(
-              color: Colors.grey[200],
-              child: const Icon(Icons.pets, color: Colors.grey, size: 20),
-            );
-          },
-        );
-      } else {
-        return Image.file(
-          File(primeiraImagem),
-          width: 50,
-          height: 50,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return Container(
-              color: Colors.grey[200],
-              child: const Icon(Icons.pets, color: Colors.grey, size: 20),
-            );
-          },
-        );
-      }
-    }
-    return Container(
-      color: Colors.grey[200],
-      child: const Icon(Icons.pets, color: Colors.grey, size: 20),
     );
   }
 
@@ -1634,7 +1582,16 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
         showUnselectedLabels: true,
         type: BottomNavigationBarType.fixed,
       ),
-      // REMOVIDO: floatingActionButton
+      floatingActionButton:
+          _indiceSelecionado == 0 &&
+              (animaisPerdidos.isEmpty && animaisEncontrados.isEmpty)
+          ? FloatingActionButton(
+              onPressed: mostrarPopupCadastro,
+              backgroundColor: Colors.cyan,
+              foregroundColor: Colors.white,
+              child: const Icon(Icons.add),
+            )
+          : null,
     );
   }
 

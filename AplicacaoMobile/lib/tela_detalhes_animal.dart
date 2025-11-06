@@ -313,7 +313,7 @@ class _TelaDetalhesAnimalState extends State<TelaDetalhesAnimal> {
               ),
             ),
 
-            // CARD DE CONTATO
+            // CARD DE CONTATO (mantido apenas para exibir informações, sem botão)
             if (widget.animal.telefoneContato.isNotEmpty) ...[
               const SizedBox(height: 12),
               Card(
@@ -369,9 +369,9 @@ class _TelaDetalhesAnimalState extends State<TelaDetalhesAnimal> {
 
             const SizedBox(height: 20),
 
-            // DESCRIÇÃO
+            // OBSERVAÇÕES (alterado de "Descrição" para "Observações")
             const Text(
-              "Descrição",
+              "Observações",
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -379,76 +379,45 @@ class _TelaDetalhesAnimalState extends State<TelaDetalhesAnimal> {
               ),
             ),
             const SizedBox(height: 8),
-            Text(
-              widget.animal.descricao,
-              style: const TextStyle(fontSize: 16, height: 1.4),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey[300]!),
+              ),
+              child: Text(
+                widget.animal.descricao,
+                style: const TextStyle(
+                  fontSize: 16,
+                  height: 1.4,
+                  color: Colors.black87,
+                ),
+              ),
             ),
+
             const SizedBox(height: 30),
 
-            // Botões de ação
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: corPrincipal,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Compartilhando informações..."),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.share),
-                    label: const Text(
-                      "Compartilhar",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+            // Botão de voltar (substitui os botões removidos)
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: corPrincipal,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                const SizedBox(width: 12),
-                if (widget.animal.telefoneContato.isNotEmpty)
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green[600],
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              "Entrando em contato com ${widget.animal.telefoneContato}...",
-                            ),
-                            backgroundColor: Colors.blue,
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.phone),
-                      label: const Text(
-                        "Contatar",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text(
+                  "VOLTAR",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
             ),
 
             const SizedBox(height: 20),
