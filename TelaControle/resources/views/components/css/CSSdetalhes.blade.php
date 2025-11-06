@@ -192,7 +192,9 @@
             font-size: 20px;
             padding: 3%;
             margin-top: 20px;
-
+            li{
+                        margin-top: 15px;
+                    }
         }
         #imgs{
             height: 60%;
@@ -213,20 +215,30 @@
             font-size: 50px;
             
         }
-        li{
-            margin-top: 15px;
+        
+        .caso{
+            margin-top: 0%;
+            margin-left: 35px;
+            font-size: 25px;
+            justify-self: flex-start;
+            padding-bottom: 20px
+        }
+        #caso{
+            color: gold;
+            -webkit-text-stroke: 1.2px rgb(0, 0, 0);
+            
         }
         #nome{
             width: 100%;
-            height: 20%;
+            height: 50px;
             margin-top: 10px;
-            padding: 30px;
+            margin-bottom: 0%;
+            margin-left: 35px;
         }
         #snome{
             width: 100%;
-            height: 20%;
-            font-size: 30px; 
-            padding: 30px;
+            height: 50px;
+            font-size: 30px;
         }
         .div2{
             height: 100%;

@@ -19,7 +19,7 @@
             'LugarE' => 'Rua Sílvia de Oliveira da Silva',
         ];
     @endphp */--}}
-    <h3>Novo Animal Encontrado</h3>
+    <h3 id="titulo">Novo Animal Encontrado</h3>
     <x-detalhes :animal="$animal" :caso="6"/>
 
 @endsection

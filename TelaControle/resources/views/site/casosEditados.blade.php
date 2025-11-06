@@ -2,7 +2,7 @@
 @extends('site.layout')
 @section('title','Lista')
 @section('conteudo')
-        <h2 class="mb-4">Casos Editados</h2>
+        <h2 class="mb-4" id="titulo">Casos Editados</h2>
         <style>
         img{
             width: 150px;
