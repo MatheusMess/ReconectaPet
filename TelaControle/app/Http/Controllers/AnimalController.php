@@ -31,13 +31,13 @@ class AnimalController extends Controller
 
         return view('site.listaNovosPerdidos', ['animais' => $animais]);
     }
-    /* 
-    public function TodosAnimais()
-    {
-        $animais = Animal::get();
 
-        return view('site.todosAnimais', ['animais' => $animais]);
-    }*/
+    public function Usuarios()
+    {
+        $usuario = Animal::get();
+
+        return view('site.Usuarios', ['Usuario' => $usuario]);
+    }
 
     public function listarEncontrados()
     {
@@ -71,7 +71,7 @@ class AnimalController extends Controller
     }
 
     //Detalhes de um animal específico recebido via POST.
-    
+
     public function DNEncontrados(Request $request)
     {
         $animalId = $request->input('id');
@@ -82,7 +82,7 @@ class AnimalController extends Controller
     {
         $animalId = $request->input('id');
         $animal = Animal::findOrFail($animalId);
-        
+
         $caso = 0;
         /*
             caso [dap]  = 1
@@ -121,9 +121,7 @@ class AnimalController extends Controller
 
     }
 
-    /**
-     * Lista todos os animais com filtros (situação, status, tipo, sexo).
-     */
+    //Lista todos os animais com filtros (situação, status, tipo, sexo).
     public function todosAnimais(Request $request)
     {
         $query = Animal::query();
@@ -155,10 +153,10 @@ class AnimalController extends Controller
         return view('site.todosAnimais', compact('animais','filters'));
     }
 
-    protected function changeStatus(Request $request, string $status)
+    protected function NovoStatus(Request $request, string $status)
     {
         $data = $request->validate([
-            'id' => 'required|integer|exists:animais,id',
+            'id' => 'required|integer|exists:animais,id'
         ]);
 
         $animal = Animal::findOrFail($data['id']);
@@ -171,30 +169,30 @@ class AnimalController extends Controller
     public function aceitar(Request $request)
     {
         // aprovar caso pendente -> ativo
-        return $this->changeStatus($request, 'ativo');
+        return $this->NovoStatus($request, 'ativo');
     }
 
     public function recusar(Request $request)
     {
-        // recusar -> inativo (ou ajuste conforme necessidade)
-        return $this->changeStatus($request, 'inativo');
+        // recusar -> inativo*
+        return $this->NovoStatus($request, 'inativo');
     }
 
     public function resolver(Request $request)
     {
         // marcar como resolvido
-        return $this->changeStatus($request, 'resolvido');
+        return $this->NovoStatus($request, 'resolvido');
     }
 
     public function inativar(Request $request)
     {
         // inativar caso
-        return $this->changeStatus($request, 'inativo');
+        return $this->NovoStatus($request, 'inativo');
     }
 
     public function reativar(Request $request)
     {
         // reativar caso -> ativo
-        return $this->changeStatus($request, 'ativo');
+        return $this->NovoStatus($request, 'ativo');
     }
 }

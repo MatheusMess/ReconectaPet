@@ -4,15 +4,15 @@
         <div class="card">
             <div class="card-image">
                 {{-- Principal imagem do animal (imagem1) --}}
-                <img id="img" height="175px" src="{{ file_exists(public_path('images/animais/'.$animal['id'].'/imagem1.png')) ? asset('images/animais/'.$animal['id'].'/imagem1.png') : asset('images/animais/noimg.jpg') }}" alt="{{ $animal['nome'] ?? 'Animal' }}">
-                
+                <img id="img" height="175px" src="{{ file_exists(public_path('images/animais/'.$animal['id'].'/imagem1.png')) ? asset('images/animais/'.$animal['id'].'/imagem1.png') : asset('images/animais/noimg.jpg') }}"> alt="{{ $animal['nome'] ?? 'Animal' }}">
+
                 {{-- "Sem coleira" caso o animal seja registrado sem nome --}}
                 @if(!$animal->nome)
                     <span style="font-size:20px;" class="card-title"><b>(Sem coleira)</b></span>
                 @else
                     <span class="card-title"><b><b>{{ $animal->nome }}</b></b></span>
                 @endif
-                
+
                 {{-- Ver Detalhes --}}
                 <form action="{{ route('site.detalheAnimal') }}" method="POST" class="halfway-fab">
                     @csrf   {{-- Token de segurança obrigatório do Laravel --}}
@@ -38,7 +38,7 @@
                         <li><b>Animal: </b>{{ $animal->tipo }}</li>
                         <li><b>Raça:   </b>{{ $animal->raca }}</li>
                         <li><b>Sexo:   </b>{{ $animal->sexo }}</li>
-                        <li><b>Cor:    </b>{{ $animal->cor }}</li>                    
+                        <li><b>Cor:    </b>{{ $animal->cor }}</li>
                     @endif
                 </ul>
             </div>
