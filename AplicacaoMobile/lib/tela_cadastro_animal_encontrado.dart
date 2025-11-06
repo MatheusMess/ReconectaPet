@@ -3,30 +3,31 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'animal.dart';
 
-class TelaCadastroAnimalPerdido extends StatefulWidget {
+class TelaCadastroAnimalEncontrado extends StatefulWidget {
   final Function(Animal) onSalvar;
 
-  const TelaCadastroAnimalPerdido({super.key, required this.onSalvar});
+  const TelaCadastroAnimalEncontrado({super.key, required this.onSalvar});
 
   @override
-  State<TelaCadastroAnimalPerdido> createState() =>
-      _TelaCadastroAnimalPerdidoState();
+  State<TelaCadastroAnimalEncontrado> createState() =>
+      _TelaCadastroAnimalEncontradoState();
 }
 
-class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
+class _TelaCadastroAnimalEncontradoState
+    extends State<TelaCadastroAnimalEncontrado> {
   final TextEditingController nomeController = TextEditingController();
   final TextEditingController racaController = TextEditingController();
   final TextEditingController corController = TextEditingController();
   final TextEditingController observacoesController = TextEditingController();
-  final TextEditingController ultimoLocalController = TextEditingController();
+  final TextEditingController localEncontroController = TextEditingController();
   final TextEditingController cidadeController = TextEditingController();
   final TextEditingController bairroController = TextEditingController();
   final TextEditingController enderecoController = TextEditingController();
-  final TextEditingController dataDesaparecimentoController =
-      TextEditingController();
+  final TextEditingController dataEncontroController = TextEditingController();
 
   String? especieSelecionada;
   String? sexoSelecionado;
+  String? situacaoSaude;
   final List<String> cores = [];
   final List<XFile> fotosExtras = [];
   XFile? fotoPrincipal;
@@ -79,17 +80,16 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
   }
 
   void salvarAnimal() {
-    if (nomeController.text.isEmpty ||
-        racaController.text.isEmpty ||
+    if (racaController.text.isEmpty ||
         cores.isEmpty ||
         observacoesController.text.isEmpty ||
         especieSelecionada == null ||
         sexoSelecionado == null ||
-        ultimoLocalController.text.isEmpty ||
+        localEncontroController.text.isEmpty ||
         cidadeController.text.isEmpty ||
         bairroController.text.isEmpty ||
         enderecoController.text.isEmpty ||
-        dataDesaparecimentoController.text.isEmpty) {
+        dataEncontroController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Preencha todos os campos obrigatórios"),
@@ -113,9 +113,11 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
       todasImagens.add("assets/cachorro1.png");
     }
 
-    // CORREÇÃO: Usar os novos campos específicos para animais perdidos
+    // CORREÇÃO: Usar os novos campos específicos para animais encontrados
     final animal = Animal(
-      nome: nomeController.text,
+      nome: nomeController.text.isNotEmpty
+          ? nomeController.text
+          : "Não identificado",
       descricao: observacoesController.text,
       raca: racaController.text,
       cor: cores.join(", "),
@@ -125,13 +127,14 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
       cidade: cidadeController.text,
       bairro: bairroController.text,
       donoId: "usuario_atual", // Será substituído pela tela principal
-      // CAMPOS ESPECÍFICOS PARA ANIMAL PERDIDO
-      ultimoLocalVisto: ultimoLocalController.text,
-      enderecoDesaparecimento: enderecoController.text,
-      dataDesaparecimento: dataDesaparecimentoController.text,
+      // CAMPOS ESPECÍFICOS PARA ANIMAL ENCONTRADO
+      localEncontro: localEncontroController.text,
+      enderecoEncontro: enderecoController.text,
+      dataEncontro: dataEncontroController.text,
+      situacaoSaude: situacaoSaude,
 
-      // Identificar como animal perdido
-      tipo: 'perdido',
+      // Identificar como animal encontrado
+      tipo: 'encontrado',
     );
 
     widget.onSalvar(animal);
@@ -143,10 +146,10 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          "Cadastrar Animal Perdido",
+          "Cadastrar Animal Encontrado",
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
-        backgroundColor: Colors.red[700],
+        backgroundColor: Colors.green[700],
         elevation: 2,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
@@ -156,7 +159,7 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Título da seção
-            _buildSectionTitle("INFORMAÇÕES DO ANIMAL PERDIDO"),
+            _buildSectionTitle("ANIMAL ENCONTRADO - PROCURA-SE DONO"),
 
             // FOTO PRINCIPAL
             _buildSectionTitle("Foto Principal", fontSize: 14),
@@ -171,16 +174,8 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
             const SizedBox(height: 20),
 
             // DADOS DO ANIMAL
-            _buildSectionTitle("Dados do Animal", fontSize: 14),
+            _buildSectionTitle("Dados do Animal Encontrado", fontSize: 14),
             const SizedBox(height: 12),
-
-            // Nome
-            _buildTextField(
-              controller: nomeController,
-              label: "Nome do animal *",
-              hint: "Ex: Rex, Luna, Bob",
-            ),
-            const SizedBox(height: 16),
 
             // Raça
             _buildTextField(
@@ -203,6 +198,14 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
             ),
             const SizedBox(height: 16),
 
+            // Nome (opcional - pode não saber o nome)
+            _buildTextField(
+              controller: nomeController,
+              label: "Nome do animal (se souber)",
+              hint: "Ex: Rex, Luna, Bob - ou deixe em branco",
+            ),
+            const SizedBox(height: 16),
+
             // Sexo
             _buildDropdown(
               value: sexoSelecionado,
@@ -210,17 +213,32 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
               items: ["Macho", "Fêmea"],
               onChanged: (value) => setState(() => sexoSelecionado = value),
             ),
+            const SizedBox(height: 16),
+
+            // Situação de Saúde
+            _buildDropdown(
+              value: situacaoSaude,
+              hint: "Situação de saúde",
+              items: [
+                "Saudável",
+                "Machucado",
+                "Doente",
+                "Desnutrido",
+                "Não avaliado",
+              ],
+              onChanged: (value) => setState(() => situacaoSaude = value),
+            ),
             const SizedBox(height: 20),
 
-            // LOCALIZAÇÃO
-            _buildSectionTitle("Local do Desaparecimento", fontSize: 14),
+            // LOCAL DO ENCONTRO
+            _buildSectionTitle("Local do Encontro", fontSize: 14),
             const SizedBox(height: 12),
 
-            // Último local visto
+            // Local onde foi encontrado
             _buildTextField(
-              controller: ultimoLocalController,
-              label: "Último local visto *",
-              hint: "Ex: Parque Central, Praça da Matriz",
+              controller: localEncontroController,
+              label: "Local onde foi encontrado *",
+              hint: "Ex: Parque Central, Praça da Matriz, Rua...",
             ),
             const SizedBox(height: 16),
 
@@ -240,24 +258,24 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
             ),
             const SizedBox(height: 16),
 
-            // Endereço
+            // Endereço aproximado
             _buildTextField(
               controller: enderecoController,
-              label: "Endereço *",
+              label: "Endereço aproximado *",
               hint: "Ex: Rua das Flores, 123",
             ),
             const SizedBox(height: 16),
 
-            // Data do desaparecimento
+            // Data do encontro
             _buildTextField(
-              controller: dataDesaparecimentoController,
-              label: "Data do desaparecimento *",
+              controller: dataEncontroController,
+              label: "Data do encontro *",
               hint: "Ex: 12/08/2025",
             ),
             const SizedBox(height: 20),
 
             // OBSERVAÇÕES
-            _buildSectionTitle("Observações", fontSize: 14),
+            _buildSectionTitle("Observações Importantes", fontSize: 14),
             const SizedBox(height: 8),
             _buildObservacoesField(),
             const SizedBox(height: 30),
@@ -276,7 +294,7 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: fontSize,
-        color: Colors.red[800],
+        color: Colors.green[800],
       ),
     );
   }
@@ -349,7 +367,7 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
             icon: const Icon(Icons.camera_alt, size: 18),
             label: const Text("Selecionar Foto Principal"),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red[600],
+              backgroundColor: Colors.green[600],
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 12),
             ),
@@ -461,7 +479,7 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
             hintText: "Ex: Preto, Branco, Marrom",
             border: const OutlineInputBorder(),
             suffixIcon: IconButton(
-              icon: const Icon(Icons.add_circle, color: Colors.red),
+              icon: const Icon(Icons.add_circle, color: Colors.green),
               onPressed: adicionarCor,
             ),
           ),
@@ -477,7 +495,7 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
                 label: Text(cores[index], style: const TextStyle(fontSize: 12)),
                 deleteIcon: const Icon(Icons.close, size: 16),
                 onDeleted: () => removerCor(index),
-                backgroundColor: Colors.red[50],
+                backgroundColor: Colors.green[50],
               );
             }),
           ),
@@ -489,9 +507,9 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
     return TextField(
       controller: observacoesController,
       decoration: const InputDecoration(
-        labelText: "Observações adicionais *",
+        labelText: "Observações importantes *",
         hintText:
-            "Descreva características marcantes, comportamento, detalhes importantes para identificação, etc.",
+            "Descreva características, estado de saúde, comportamento, onde está abrigado, etc.",
         border: OutlineInputBorder(),
         alignLabelWithHint: true,
       ),
@@ -552,14 +570,14 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
       child: ElevatedButton(
         onPressed: salvarAnimal,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.red[700],
+          backgroundColor: Colors.green[700],
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           elevation: 2,
         ),
         child: const Text(
-          "CADASTRAR ANIMAL PERDIDO",
+          "CADASTRAR ANIMAL ENCONTRADO",
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ),
