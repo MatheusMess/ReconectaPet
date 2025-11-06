@@ -13,7 +13,7 @@ class _TelaEditarPerfilState extends State<TelaEditarPerfil> {
   final _emailController = TextEditingController();
   final _telefoneController = TextEditingController();
   final _cpfController = TextEditingController();
-  final _authService = AuthService();
+  final AuthService _authService = AuthService();
   bool _carregando = false;
 
   @override
@@ -33,11 +33,14 @@ class _TelaEditarPerfilState extends State<TelaEditarPerfil> {
   }
 
   void _salvarAlteracoes() async {
-    if (_nomeController.text.isEmpty ||
-        _emailController.text.isEmpty ||
-        _telefoneController.text.isEmpty ||
-        _cpfController.text.isEmpty) {
-      _mostrarErro('Preencha todos os campos');
+    if (_nomeController.text.isEmpty || _emailController.text.isEmpty) {
+      _mostrarErro('Nome e email são obrigatórios');
+      return;
+    }
+
+    final usuarioAtual = _authService.usuarioLogado;
+    if (usuarioAtual == null) {
+      _mostrarErro('Usuário não encontrado');
       return;
     }
 
@@ -46,12 +49,15 @@ class _TelaEditarPerfilState extends State<TelaEditarPerfil> {
     });
 
     try {
+      // Criar usuário atualizado mantendo o ID e senha
       final usuarioAtualizado = Usuario(
+        id: usuarioAtual.id,
         nome: _nomeController.text.trim(),
         email: _emailController.text.trim(),
         telefone: _telefoneController.text.trim(),
         cpf: _cpfController.text.trim(),
-        senha: _authService.usuarioLogado!.senha, // Mantém a senha atual
+        senha: usuarioAtual.senha, // Mantém a senha atual
+        dataCriacao: usuarioAtual.dataCriacao, // Mantém a data de criação
       );
 
       final sucesso = await _authService.atualizarPerfil(usuarioAtualizado);
@@ -59,18 +65,26 @@ class _TelaEditarPerfilState extends State<TelaEditarPerfil> {
       if (sucesso) {
         _mostrarSucesso('Perfil atualizado com sucesso!');
         await Future.delayed(const Duration(seconds: 1));
-        Navigator.pop(context);
+        if (mounted) {
+          Navigator.pop(context);
+        }
+      } else {
+        _mostrarErro('Erro ao atualizar perfil');
       }
     } catch (e) {
-      _mostrarErro(e.toString().replaceAll('Exception: ', ''));
+      _mostrarErro('Erro: ${e.toString().replaceAll('Exception: ', '')}');
     } finally {
-      setState(() {
-        _carregando = false;
-      });
+      if (mounted) {
+        setState(() {
+          _carregando = false;
+        });
+      }
     }
   }
 
   void _mostrarErro(String mensagem) {
+    if (!mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(mensagem),
@@ -81,12 +95,22 @@ class _TelaEditarPerfilState extends State<TelaEditarPerfil> {
   }
 
   void _mostrarSucesso(String mensagem) {
+    if (!mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(mensagem),
         backgroundColor: Colors.green,
         duration: const Duration(seconds: 2),
       ),
+    );
+  }
+
+  void _mostrarMensagem(String mensagem) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(mensagem), duration: const Duration(seconds: 2)),
     );
   }
 
@@ -122,7 +146,7 @@ class _TelaEditarPerfilState extends State<TelaEditarPerfil> {
               // Foto de perfil
               GestureDetector(
                 onTap: () {
-                  _mostrarErro('Alteração de foto em desenvolvimento');
+                  _mostrarMensagem('Alteração de foto em desenvolvimento');
                 },
                 child: Stack(
                   children: [
@@ -150,7 +174,7 @@ class _TelaEditarPerfilState extends State<TelaEditarPerfil> {
                         width: 36,
                         height: 36,
                         decoration: BoxDecoration(
-                          color: Colors.cyan,
+                          color: Colors.cyan[700],
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.white, width: 2),
                         ),
@@ -167,31 +191,44 @@ class _TelaEditarPerfilState extends State<TelaEditarPerfil> {
 
               const SizedBox(height: 30),
 
-              _campoTexto("Nome", Icons.person, _nomeController),
-              const SizedBox(height: 15),
+              // Campos do formulário
               _campoTexto(
-                "Email",
+                "Nome *",
+                Icons.person,
+                _nomeController,
+                hintText: "Digite seu nome completo",
+              ),
+              const SizedBox(height: 16),
+
+              _campoTexto(
+                "Email *",
                 Icons.email,
                 _emailController,
-                isEmail: true,
+                hintText: "Digite seu email",
+                keyboardType: TextInputType.emailAddress,
               ),
-              const SizedBox(height: 15),
+              const SizedBox(height: 16),
+
               _campoTexto(
-                "Telefone",
+                "Telefone *",
                 Icons.phone,
                 _telefoneController,
-                isPhone: true,
+                hintText: "(11) 99999-9999",
+                keyboardType: TextInputType.phone,
               ),
-              const SizedBox(height: 15),
+              const SizedBox(height: 16),
+
               _campoTexto(
-                "CPF",
+                "CPF *",
                 Icons.credit_card,
                 _cpfController,
-                isCpf: true,
+                hintText: "000.000.000-00",
+                keyboardType: TextInputType.number,
               ),
 
               const SizedBox(height: 40),
 
+              // Botão Salvar
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -199,19 +236,25 @@ class _TelaEditarPerfilState extends State<TelaEditarPerfil> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.cyan,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
+                    elevation: 2,
                   ),
                   child: _carregando
                       ? const SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
                         )
                       : const Text(
-                          "Salvar Alterações",
+                          "SALVAR ALTERAÇÕES",
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -220,26 +263,79 @@ class _TelaEditarPerfilState extends State<TelaEditarPerfil> {
                 ),
               ),
 
-              const SizedBox(height: 15),
+              const SizedBox(height: 16),
 
-              OutlinedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.grey),
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+              // Botão Cancelar
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: _carregando ? null : () => Navigator.pop(context),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.grey),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    "CANCELAR",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[700],
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
-                child: const SizedBox(
-                  width: double.infinity,
-                  child: Text(
-                    "Cancelar",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Informação sobre campos obrigatórios
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info, color: Colors.cyan[700], size: 16),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        "Todos os campos são obrigatórios",
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              // Informação sobre dados do usuário
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue[100]!),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.security, color: Colors.blue[700], size: 16),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        "Seus dados estão seguros e armazenados localmente",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Color.fromARGB(255, 25, 118, 210),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -253,28 +349,33 @@ class _TelaEditarPerfilState extends State<TelaEditarPerfil> {
     String label,
     IconData icone,
     TextEditingController controller, {
-    bool isEmail = false,
-    bool isPhone = false,
-    bool isCpf = false,
+    String? hintText,
+    TextInputType keyboardType = TextInputType.text,
   }) {
     return TextField(
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
+        hintText: hintText,
         prefixIcon: Icon(icone, color: Colors.cyan),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade400),
+        ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Colors.cyan, width: 2),
         ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade400),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 16,
+          horizontal: 16,
+        ),
       ),
-      keyboardType: isEmail
-          ? TextInputType.emailAddress
-          : isPhone
-          ? TextInputType.phone
-          : isCpf
-          ? TextInputType.number
-          : TextInputType.text,
+      keyboardType: keyboardType,
     );
   }
 
