@@ -12,21 +12,24 @@ class Lista extends Component
      *
      * @var \Illuminate\Database\Eloquent\Collection
      */
-    public $animais;
+    public $informacoes;
+    public $usuario;
 
     public $showActions;
 
     /**
      * Create a new component instance.
      *
-     * @param \Illuminate\Database\Eloquent\Collection $animais
+     * @param \Illuminate\Database\Eloquent\Collection $informacoes
      * @param bool $showActions
+     * @param bool $usuario
      * @return void
      */
-    public function __construct(Collection $animais, bool $showActions = false) // 2. Altere o tipo aqui
+    public function __construct(Collection $informacoes, bool $showActions = false, bool $usuario = false) // 2. Altere o tipo aqui
     {
-        $this->animais = $animais;
+        $this->informacoes = $informacoes;
         $this->showActions = $showActions;
+        $this->usuario = $usuario;
     }
 
     /**

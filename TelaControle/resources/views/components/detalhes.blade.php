@@ -6,8 +6,8 @@
     $isBefore = in_array($caso, [10, 12], true);
     $isAfter  = in_array($caso, [11, 13], true);
 
-    
-    $campos = ['tipo','raca','tam','sexo','cor','aparencia','lugarV','lugarE','nome'];
+
+    $campos = ['tipo','raca','tam','sexo','cor','aparencia','lugar_visto','lugar_encontrado','nome'];
     $imagens = ['imagem1','imagem2','imagem3','imagem4'];
 
     $nValue = function($key) use ($animal) {
@@ -96,7 +96,7 @@
                 @endforeach
 
                 <li><b>Detalhes da aparência:</b></li>
-                @php 
+                @php
                     $changedA = $isChanged('aparencia');
                     $clsA = $changedA ? ($isBefore ? 'alterado1' : 'alterado2') : '';
                 @endphp
@@ -105,49 +105,49 @@
                 @switch($caso)
                     @case(1)
                         <li><b>Ultimo lugar visto:</b></li>
-                        <p>{{ $display('lugarV') }}</p>
+                        <p>{{ $display('lugar_visto') }}</p>
                         @break
                     @case(2)
                         <li><b>Lugar encontrado:</b></li>
-                        <p>{{ $display('lugarE') }}</p>
+                        <p>{{ $display('lugar_encontrado') }}</p>
                         @break
                     @case(3)
                     @case(4)
                     @case(5)
                         <li><b>Ultimo lugar visto:</b></li>
-                        <p class="{{ $isChanged('lugarV') ? ($isBefore ? 'alterado1' : 'alterado2') : '' }}">{{ $display('lugarV') }}</p>
+                        <p class="{{ $isChanged('lugar_visto') ? ($isBefore ? 'alterado1' : 'alterado2') : '' }}">{{ $display('lugar_visto') }}</p>
                         <li><b>Lugar encontrado:</b></li>
-                        <p class="{{ $isChanged('lugarE') ? ($isBefore ? 'alterado1' : 'alterado2') : '' }}">{{ $display('lugarE') }}</p>
+                        <p class="{{ $isChanged('lugar_encontrado') ? ($isBefore ? 'alterado1' : 'alterado2') : '' }}">{{ $display('lugar_encontrado') }}</p>
                         @break
                     @case(6)
                         <li><b>Lugar encontrado:</b></li>
-                        <p>{{ $display('lugarE') }}</p>
+                        <p>{{ $display('lugar_encontrado') }}</p>
                         @break
                     @case(7)
                         <li><b>Ultimo lugar visto:</b></li>
-                        <p>{{ $display('lugarV') }}</p>
+                        <p>{{ $display('lugar_visto') }}</p>
                         @break
 
                     {{-- Perdido: antes = 10, depois = 11 --}}
                     @case(10)
                     @case(11)
                         @php
-                            $changedLV = $isChanged('lugarV');
+                            $changedLV = $isChanged('lugar_visto');
                             $clsLV = $changedLV ? ($isBefore ? 'alterado1' : 'alterado2') : '';
                         @endphp
                         <li><b>Último lugar visto:</b></li>
-                        <p class="{{ $clsLV }}">{{ $display('lugarV') }}</p>
+                        <p class="{{ $clsLV }}">{{ $display('lugar_visto') }}</p>
                         @break
 
                     {{-- Encontrado: antes = 12, depois = 13 --}}
                     @case(12)
                     @case(13)
                         @php
-                            $changedLE = $isChanged('lugarE');
+                            $changedLE = $isChanged('lugar_encontrado');
                             $clsLE = $changedLE ? ($isBefore ? 'alterado1' : 'alterado2') : '';
                         @endphp
                         <li><b>Lugar encontrado:</b></li>
-                        <p class="{{ $clsLE }}">{{ $display('lugarE') }}</p>
+                        <p class="{{ $clsLE }}">{{ $display('lugar_encontrado') }}</p>
                         @break
 
                     @default
@@ -271,22 +271,22 @@
                 <li><b>Cor:    </b>{{$animal['cor']}}</li>
                 <li><b>Detalhes da aparência:</b></li>
                 <p>{{$animal['aparencia']}}</p>
-                
+
                 @if($caso == 3 || $caso == 4 || $caso == 5)
                     <li><b>Ultimo lugar visto:</b></li>
-                    <p>{{$animal['lugarV']}}</p>
+                    <p>{{$animal['lugar_visto']}}</p>
                     <li><b>Lugar encontrado:</b></li>
-                    <p>{{$animal['lugarE']}}</p>
+                    <p>{{$animal['lugar_encontrado']}}</p>
                 @endif
-                
+
                 @if($caso == 1 || $caso == 2)
                     <li><b>Ultimo lugar visto:</b></li>
-                    <p>{{$animal['lugarV']}}</p>
+                    <p>{{$animal['lugar_visto']}}</p>
                 @endif
 
                 @if($caso == 2 || $caso == 6)
                     <li><b>Lugar encontrado:</b></li>
-                    <p>{{$animal['lugarE']}}</p>
+                    <p>{{$animal['lugar_encontrado']}}</p>
                 @endif
             </ul>
         </div>
@@ -348,7 +348,7 @@
                     <button type="submit" id="aban" class="btn-caso">Recusar</button>
                 </form>
             @endif
-            
+
             @if($caso == 1 || $caso == 7)
                 <button id="reso" class="btn-caso" >Resolvido</button>
                 <button id="aban" class="btn-caso" >Inativar</button>
