@@ -332,7 +332,7 @@ class Animal {
 
   // ========== EXEMPLOS ==========
 
-  // Lista de exemplos removida - agora o app começa sem animais cadastrados
+  // Lista de exemplos removida
   static List<Animal> exemplos = [];
 }
 
