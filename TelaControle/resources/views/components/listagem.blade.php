@@ -4,7 +4,7 @@
         <div class="card">
             <div class="card-image">
                 {{-- Principal imagem do animal (imagem1) --}}
-                <img id="img" height="175px" src="{{ file_exists(public_path('images/animais/'.$animal['id'].'/imagem1.png')) ? asset('images/animais/'.$animal['id'].'/imagem1.png') : asset('images/animais/noimg.jpg') }}"> alt="{{ $animal['nome'] ?? 'Animal' }}">
+                <img id="img" height="175px" src="{{ file_exists(public_path('images/animais/'.$animal['id'].'/imagem1.png')) ? asset('images/animais/'.$animal['id'].'/imagem1.png') : asset('images/animais/noimg.jpg') }}"alt="{{ $animal['nome'] ?? 'Animal' }}">
 
                 {{-- "Sem coleira" caso o animal seja registrado sem nome --}}
                 @if(!$animal->nome)

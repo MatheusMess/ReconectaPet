@@ -7,7 +7,7 @@
         <div class="row">
             {{-- Verifica se a coleção de animais não está vazia --}}
             {{--@if($animais->count() > 0)--}}
-                <x-lista :animais="$animais" :showActions="true" />
+                <x-lista :informacoes="$animais" :showActions="true" />
             {{--@else
                 <div class="col">
                     <p class="text-center">Nenhum animal encontrado no momento.</p>

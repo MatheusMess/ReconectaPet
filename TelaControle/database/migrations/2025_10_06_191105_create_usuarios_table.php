@@ -16,7 +16,9 @@ return new class extends Migration
             $table->string('nome');
             $table->string('email')->unique();
             $table->string('tel')->nullable();
+            $table->string('cpf');
             $table->string('senha');
+            $table->boolean('adm')->default(false);
             $table->timestamps(); // <-- Adicione esta linha
         });
     }

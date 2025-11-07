@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Animal;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class AnimalController extends Controller
@@ -32,12 +33,7 @@ class AnimalController extends Controller
         return view('site.listaNovosPerdidos', ['animais' => $animais]);
     }
 
-    public function Usuarios()
-    {
-        $usuario = Animal::get();
 
-        return view('site.Usuarios', ['Usuario' => $usuario]);
-    }
 
     public function listarEncontrados()
     {

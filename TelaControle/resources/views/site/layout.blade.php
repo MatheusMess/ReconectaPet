@@ -81,7 +81,7 @@
 
             <ul id="nav-mobile" class="right">
                 <li><a href="http://reconectapet.test/TelaControle/public/" ><b>Início</b></a></li>
-                <li class="hide-on-med-and-down"><a href=""><b>Usuários</b></a></li>
+                <li class="hide-on-med-and-down"><a href="usuarios"><b>Usuários</b></a></li>
             </ul>
         </div>
         @yield('conteudo')
