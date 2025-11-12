@@ -96,7 +96,7 @@ class AnimalSeeder extends Seeder
             [
                 'user_id' => 1,
                 'tipo' => 'Cachorro',
-                'nome' => 'Max',
+                'nome' => '',
                 'raca' => 'Labrador',
                 'cor' => 'Preto',
                 'sexo' => 'Macho',
@@ -105,7 +105,7 @@ class AnimalSeeder extends Seeder
                 'imagem2' => 'imagem2.png',
                 'imagem3' => 'imagem3.png',
                 'imagem4' => 'imagem4.png',
-                'aparencia' => 'Fihote com uma coleira azul com símbolo de osso',
+                'aparencia' => 'Totalmente preto e sem manchas',
                 'lugar_encontrado' => 'Rua Sílvia de Oliveira da Silva',
                 //'status' => 'pendente',
                 'situacao' => 'Encontrado',

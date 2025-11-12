@@ -38,13 +38,13 @@
 
     <div style="display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap;">
         <div style="flex:1; min-width:320px;">
-            <h3>Antes</h3>
-            <x-detalhes :animal="$animal" :caso="12" />
+            <h3 id="titulo">Antes</h3>
+            <x-detalhes :animal="$animal" :editado="$editado" :caso="12" />
         </div>
 
         <div style="flex:1; min-width:320px;">
-            <h3>Depois</h3>
-            <x-detalhes :editado="$editado" :caso="13" />
+            <h3 id="titulo">Depois</h3>
+            <x-detalhes :animal="$animal" :editado="$editado" :caso="13" />
         </div>
     </div>
 @endsection
