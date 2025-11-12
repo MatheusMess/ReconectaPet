@@ -14,13 +14,23 @@
                 @endif
 
                 {{-- Ver Detalhes --}}
-                <form action="{{ route('site.detalheAnimal') }}" method="POST" class="halfway-fab">
-                    @csrf   {{-- Token de segurança obrigatório do Laravel --}}
-                    <input type="hidden" name="id" value="{{ $animal->id }}">
-                    <button id="ic" type="submit" class="btn-floating halfway-fab waves-effect waves-light cyan">
-                        <i id="ic" class="material-icons">visibility</i>
-                    </button>
-                </form>
+                @if($info === 3)
+                    <form action="detalhes-ce" method="POST" class="halfway-fab">
+                        @csrf  {{-- Token de segurança obrigatório do Laravel --}}
+                        <input type="hidden" name="id" value="{{ $animal['id'] }}">
+                        <button type="submit" class="btn-floating halfway-fab waves-effect waves-light cyan">
+                            <i id="ic" class="material-icons">visibility</i>
+                        </button>
+                    </form>
+                @else
+                    <form action="{{ route('site.detalheAnimal') }}" method="POST" class="halfway-fab">
+                        @csrf   {{-- Token de segurança obrigatório do Laravel --}}
+                        <input type="hidden" name="id" value="{{ $animal['id'] }}">
+                        <button id="ic" type="submit" class="btn-floating halfway-fab waves-effect waves-light cyan">
+                            <i id="ic" class="material-icons">visibility</i>
+                        </button>
+                    </form>
+                @endif
             </div>
             <div class="card-content">
                 <ul class="info">
@@ -34,6 +44,10 @@
                         <li><b>Raça:   </b>{{ $animal->raca }}</li>
                         <li><b>Sexo:   </b>{{ $animal->sexo }}</li>
                         <li><b>Situação: </b>{{ $animal['situacao'] }}</li>
+                    @elseif ($info === 3)    {{--Editados--}}
+                        <li><b>Situação: </b>{{ $animal['situacao'] }}</li>
+                        <li><b>Animal: </b>{{ $animal['tipo'] }}</li>
+                        <li><b>Sexo:   </b>{{ $animal['sexo'] }}</li>
                     @else                {{--Mesma situação e status--}}
                         <li><b>Animal: </b>{{ $animal->tipo }}</li>
                         <li><b>Raça:   </b>{{ $animal->raca }}</li>

@@ -41,19 +41,10 @@
                 <div class="card-body">
                     <h5 class="card-title">{{ $usuario['nome'] }}</h5>
                     <ul class="list-unstyled mb-3">
-                        <li><strong>Classe:</strong> {{ $usuario['classe'] }}</li>
-                        <li><strong>Cidade:</strong> {{ $usuario['raca'] }}</li>
-                        <li><strong>Sexo:</strong> {{ $usuario['sexo'] }}</li>
+                        <li><b>E-mail: </b> {{ $usuario['email'] }}</li>
+                        <li><b>Telefone: </b> {{ $usuario['tel'] }}</li>
+                        <li><b>CPF: </b> {{ $usuario['cpf'] }}</li>
                     </ul>
-                    <div id="btns" class="d-flex justify-content-between">
-
-                        <form action="{{$urlDetalhes}}" method="POST" style="display: inline;">
-                            @csrf  {{-- Token de segurança obrigatório do Laravel --}}
-                            <input type="hidden" name="id" value="{{ $usuario['id'] }}">
-                            <button id="det" type="submit" class="btn btn-primary">Ver Detalhes</button>
-                        </form>
-                        <button id="rej" class="btn btn-reject" data-id="{{ $usuario['id'] ?? '' }}">Banir Usuário</button>
-                    </div>
                 </div>
             </div>
         </div>

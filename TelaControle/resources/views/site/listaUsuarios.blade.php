@@ -3,7 +3,7 @@
 @section('title','Animais Encontrados')
 @section('conteudo')
     <div class="container mt-4">
-        <h2 class="mb-4" id="titulo">Animais Encontrados</h2>
+        <h2 class="mb-4" id="titulo">Usuários</h2>
         <div class="row">
             {{-- Verifica se a coleção de animais não está vazia --}}
             {{--@if($animais->count() > 0)--}}

@@ -3,16 +3,16 @@
 
 @php
     // Determina se este componente está mostrando "antes" ou "depois"
+    /*
     $isBefore = in_array($caso, [10, 12], true);
     $isAfter  = in_array($caso, [11, 13], true);
 
 
-    $campos = ['tipo','raca','tam','sexo','cor','aparencia','lugar_visto','lugar_encontrado','nome'];
+    $campos = $animal;
     $imagens = ['imagem1','imagem2','imagem3','imagem4'];
 
-    $nValue = function($key) use ($animal) {
-        $k = 'N'.$key;
-        $v = $animal[$k] ?? null;
+    $nValue = function($key) use ($editado) {
+        $v = $editado['n_'.$key] ?? null;
         if (is_null($v) || trim((string)$v) === '') {
             return ' ';
         }
@@ -28,31 +28,32 @@
         if ($isBefore) {
             return $origValue($key);
         }
-        $nv = $nValue($key);
+        $nv = $nValue($key) ?? $origValue($key);
         return trim((string)$nv) === ' ' ? $origValue($key) : $nv;
     };
 
     $isChanged = function($key) use ($origValue, $nValue) {
         $orig = (string)$origValue($key);
-        $nv   = (string)$nValue($key);
+        $nv   = (string)$nValue($key) ?? (string)$origValue($key);
         return trim($nv) !== '' && trim($nv) !== ' ' && $nv !== $orig;
     };
 
-    $imageSrc = function($imgKey) use ($isBefore, $origValue, $nValue) {
+    $imageSrc = function($imgKey) use ($isBefore, $origValue, $nValue, $animal) {
         $orig = $origValue($imgKey);
         if ($isBefore) {
-            return trim((string)$orig) === '' ? asset('images/placeholder.png') : $orig;
+            return trim((string)$orig) === '' ? (file_exists(public_path('images/animais/'.$animal['id'].'/'.$animal[$imgKey])) ? asset('images/animais/'.$animal['id'].'/'.$imgKey) : asset('images/animais/noimg.jpg')) : $orig;
         }
         $nv = $nValue($imgKey);
         if (trim((string)$nv) === ' ') {
-            return trim((string)$orig) === '' ? asset('images/placeholder.png') : $orig;
+            return trim((string)$orig) === '' ? (file_exists(public_path('images/animais/'.$animal['id'].'/'.'new/'.$animal[$imgKey])) ? asset('images/animais/'.$animal['id'].'/new/'.$imgKey) : asset('images/animais/noimg.jpg')) : $orig;
         }
         return $nv;
-    };
+    };*/
+
 @endphp
 
 <div class="pai">
-    <div id="img" class="card">
+    {{--<div id="img" class="card">
         @if($caso == 10 || $caso == 11)
             <h2 class="titulo">Perdido</h2>
         @elseif($caso == 12 || $caso == 13)
@@ -60,94 +61,89 @@
         @endif
 
         <div id="imgs">
-            @foreach($imagens as $img)
-                @php
-                    $src = $imageSrc($img);
-                    $changed = $isChanged($img);
-                    $cls = $changed ? ($isBefore ? 'changed-before' : 'changed-after') : '';
-                @endphp
-                <div class="img-wrap {{ $cls }}">
-                    <img src="{{ $src }}" alt="{{ $display('nome') ?: 'Animal' }}">
-                </div>
-            @endforeach
+            <div class="img-wrap alterado2">
+                <img src={{"images/animais/".$editado['animal_id']."/imagem1.png" }}alt="{{ $animal['nome'] ?: 'Animal' }}">
+            </div>
         </div>
-
+        {{--
         @php
             $nameChanged = $isChanged('nome');
             $nameClass = $nameChanged ? ($isBefore ? 'changed-before' : 'changed-after') : '';
         @endphp
-
-        @if(trim((string)($display('nome'))) === '')
+        -}}
+        @if(trim((string)($animal['nome'])) === '')
             <span id="snome" class="center">(Sem coleira)</span>
         @else
-            <span id="nome" class="center {{ $nameClass }}">{{ $display('nome') }}</span>
+            <span id="nome" class="center ">{{ $animal['nome'] }}</span>
         @endif
+    </div> --}}
+     <div id="img" class="white" style="border-radius: 50px">
+        <div id="imgs">
+            @if ($caso == 10 || $caso == 12)
+                <img src="{{ file_exists(public_path('images/animais/'.$animal['id'].'/imagem1.png')) ? asset('images/animais/'.$animal['id'].'/imagem1.png') : asset('images/animais/noimg.jpg') }}" alt="{{ $animal['tipo'].' '.$animal['nome'] ?? $animal['tipo'] }}">
+                <img src="{{ file_exists(public_path('images/animais/'.$animal['id'].'/imagem2.png')) ? asset('images/animais/'.$animal['id'].'/imagem2.png') : asset('images/animais/noimg.jpg') }}" alt="{{ $animal['tipo'].' '.$animal['nome'] ?? $animal['tipo'] }}">
+                <img src="{{ file_exists(public_path('images/animais/'.$animal['id'].'/imagem3.png')) ? asset('images/animais/'.$animal['id'].'/imagem3.png') : asset('images/animais/noimg.jpg') }}" alt="{{ $animal['tipo'].' '.$animal['nome'] ?? $animal['tipo'] }}">
+                <img src="{{ file_exists(public_path('images/animais/'.$animal['id'].'/imagem4.png')) ? asset('images/animais/'.$animal['id'].'/imagem4.png') : asset('images/animais/noimg.jpg') }}" alt="{{ $animal['tipo'].' '.$animal['nome'] ?? $animal['tipo'] }}">
+            @else
+                <img src="{{ file_exists(public_path('images/animais/'.$animal['id'].'/new/imagem1.png')) ? asset('images/animais/'.$animal['id'].'/new/imagem1.png') : (file_exists(public_path('images/animais/'.$animal['id'].'/imagem1.png')) ? asset('images/animais/'.$animal['id'].'/imagem1.png') : asset('images/animais/noimg.jpg'))  }}" alt="{{ $animal['tipo'].' '.$animal['nome'] ?? $animal['tipo'] }}">
+                <img src="{{ file_exists(public_path('images/animais/'.$animal['id'].'/new/imagem2.png')) ? asset('images/animais/'.$animal['id'].'/new/imagem2.png') : (file_exists(public_path('images/animais/'.$animal['id'].'/imagem2.png')) ? asset('images/animais/'.$animal['id'].'/imagem2.png') : asset('images/animais/noimg.jpg'))  }}" alt="{{ $animal['tipo'].' '.$animal['nome'] ?? $animal['tipo'] }}">
+                <img src="{{ file_exists(public_path('images/animais/'.$animal['id'].'/new/imagem3.png')) ? asset('images/animais/'.$animal['id'].'/new/imagem3.png') : (file_exists(public_path('images/animais/'.$animal['id'].'/imagem3.png')) ? asset('images/animais/'.$animal['id'].'/imagem3.png') : asset('images/animais/noimg.jpg'))  }}" alt="{{ $animal['tipo'].' '.$animal['nome'] ?? $animal['tipo'] }}">
+                <img src="{{ file_exists(public_path('images/animais/'.$animal['id'].'/new/imagem4.png')) ? asset('images/animais/'.$animal['id'].'/new/imagem4.png') : (file_exists(public_path('images/animais/'.$animal['id'].'/imagem4.png')) ? asset('images/animais/'.$animal['id'].'/imagem4.png') : asset('images/animais/noimg.jpg'))  }}" alt="{{ $animal['tipo'].' '.$animal['nome'] ?? $animal['tipo'] }}">
+            @endif
+        </div>
+        @if(!$animal['nome'])
+            <span id="snome" >(Sem coleira)</span>
+        @endif
+        @if($animal['nome'])
+            <span id="nome" ><b>{{ $animal['nome']}}</b></span>
+        @endif
+        <ul class="caso">
+            <li>
+                <b>Situação: </b>{{ $animal['situacao'] }}
+            </li>
+            <li id="caso"><b>Caso {{ $animal['status'] }}</b></li>
+        </ul>
     </div>
 
     <div class="div2">
         <div id="detalhes" class="card">
             <ul>
                 @foreach(['tipo' => 'Animal', 'raca' => 'Raça', 'tam' => 'Tamanho', 'sexo' => 'Sexo', 'cor' => 'Cor'] as $campo => $label)
-                    @php
+                    {{--@php
                         $changed = $isChanged($campo);
                         $cls = $changed ? ($isBefore ? 'alterado1' : 'alterado2') : '';
-                    @endphp
-                    <li class="{{ $cls }}"><b>{{ $label }}: </b>{{ $display($campo) }}</li>
+                    @endphp--}}
+                    <li class="alterado2"><b>{{ $label }}: </b>{{ $animal[$campo]}}</li>
                 @endforeach
 
                 <li><b>Detalhes da aparência:</b></li>
-                @php
+                {{--@php
                     $changedA = $isChanged('aparencia');
                     $clsA = $changedA ? ($isBefore ? 'alterado1' : 'alterado2') : '';
                 @endphp
-                <p class="{{ $clsA }}">{{ $display('aparencia') }}</p>
+                <p class="alterado2">{{ $animal['aparencia') }}</p>--}}
 
                 @switch($caso)
-                    @case(1)
-                        <li><b>Ultimo lugar visto:</b></li>
-                        <p>{{ $display('lugar_visto') }}</p>
-                        @break
-                    @case(2)
-                        <li><b>Lugar encontrado:</b></li>
-                        <p>{{ $display('lugar_encontrado') }}</p>
-                        @break
-                    @case(3)
-                    @case(4)
-                    @case(5)
-                        <li><b>Ultimo lugar visto:</b></li>
-                        <p class="{{ $isChanged('lugar_visto') ? ($isBefore ? 'alterado1' : 'alterado2') : '' }}">{{ $display('lugar_visto') }}</p>
-                        <li><b>Lugar encontrado:</b></li>
-                        <p class="{{ $isChanged('lugar_encontrado') ? ($isBefore ? 'alterado1' : 'alterado2') : '' }}">{{ $display('lugar_encontrado') }}</p>
-                        @break
-                    @case(6)
-                        <li><b>Lugar encontrado:</b></li>
-                        <p>{{ $display('lugar_encontrado') }}</p>
-                        @break
-                    @case(7)
-                        <li><b>Ultimo lugar visto:</b></li>
-                        <p>{{ $display('lugar_visto') }}</p>
-                        @break
-
                     {{-- Perdido: antes = 10, depois = 11 --}}
                     @case(10)
                     @case(11)
-                        @php
+                        {{--@php
                             $changedLV = $isChanged('lugar_visto');
                             $clsLV = $changedLV ? ($isBefore ? 'alterado1' : 'alterado2') : '';
-                        @endphp
+                        @endphp--}}
                         <li><b>Último lugar visto:</b></li>
-                        <p class="{{ $clsLV }}">{{ $display('lugar_visto') }}</p>
+                        <p class="alterado2">{{ $animal['lugar_visto'] }}</p>
                         @break
 
                     {{-- Encontrado: antes = 12, depois = 13 --}}
                     @case(12)
                     @case(13)
-                        @php
+                        {{--@php
                             $changedLE = $isChanged('lugar_encontrado');
                             $clsLE = $changedLE ? ($isBefore ? 'alterado1' : 'alterado2') : '';
-                        @endphp
+                        @endphp--}}
                         <li><b>Lugar encontrado:</b></li>
-                        <p class="{{ $clsLE }}">{{ $display('lugar_encontrado') }}</p>
+                        <p class="alterado2">{{ $animal['lugar_encontrado'] }}</p>
                         @break
 
                     @default
@@ -179,51 +175,6 @@
                     @csrf
                     <input type="hidden" name="id" value="{{ $animal['id'] }}">
                     <button type="submit" id="aban" class="btn-caso">Inativar</button>
-                </form>
-            @endif
-
-            {{-- Versão alternativa (casos menores) --}}
-            @if($caso == 5 || $caso == 6 || $caso == 7)
-                <form action="/animal/aceitar" method="POST" style="display:inline">
-                    @csrf
-                    <input type="hidden" name="id" value="{{ $animal['id'] }}">
-                    <button type="submit" id="reso" class="btn-caso">Aceitar</button>
-                </form>
-
-                <form action="{{ route('animal.recusar') }}" method="POST" style="display:inline">
-                    @csrf
-                    <input type="hidden" name="id" value="{{ $animal['id'] }}">
-                    <button type="submit" id="aban" class="btn-caso">Recusar</button>
-                </form>
-            @endif
-
-            @if($caso == 1 || $caso == 2)
-                <form action="{{ route('animal.resolver') }}" method="POST" style="display:inline">
-                    @csrf
-                    <input type="hidden" name="id" value="{{ $animal['id'] }}">
-                    <button type="submit" id="reso" class="btn-caso">Resolvido</button>
-                </form>
-
-                <form action="{{ route('animal.inativar') }}" method="POST" style="display:inline">
-                    @csrf
-                    <input type="hidden" name="id" value="{{ $animal['id'] }}">
-                    <button type="submit" id="aban" class="btn-caso">Inativar</button>
-                </form>
-            @endif
-
-            @if($caso == 3)
-                <form action="{{ route('animal.reativar') }}" method="POST" style="display:inline">
-                    @csrf
-                    <input type="hidden" name="id" value="{{ $animal['id'] }}">
-                    <button type="submit" id="aban" class="btn-caso">Reativar Caso</button>
-                </form>
-            @endif
-
-            @if($caso == 4)
-                <form action="{{ route('animal.reativar') }}" method="POST" style="display:inline">
-                    @csrf
-                    <input type="hidden" name="id" value="{{ $animal['id'] }}">
-                    <button type="submit" id="reso" class="btn-caso">Reativar Caso</button>
                 </form>
             @endif
         </div>

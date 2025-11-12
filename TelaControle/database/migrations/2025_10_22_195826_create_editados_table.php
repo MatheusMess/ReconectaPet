@@ -13,11 +13,9 @@ return new class extends Migration
     {
         Schema::create('editados', function (Blueprint $table) {
             // referência ao animal original
-            $table->unsignedBigInteger('id');
-            $table->primary('id');
-            $table->foreign('id')->references('id')->on('animais')->onDelete('cascade');
+            $table->id();
+            $table->foreignId('animal_id')->constrained('animais')->onDelete('cascade');
             $table->string('n_nome')->nullable();
-
             $table->enum('n_tipo', ['Gato', 'Cachorro', 'Outro'])->nullable();
             $table->enum('n_situacao', ['Perdido', 'Encontrado'])->nullable();
             $table->string('n_raca')->nullable();

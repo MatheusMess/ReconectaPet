@@ -1,9 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\CasoPendenteController;
 use App\Http\Controllers\AnimalController;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\EditadosController;
 
 Route::get('/', function () {
     return view('site.index');
@@ -65,6 +65,8 @@ Route::get('/ce', function () {
 });
 
 
+Route::get('/ce', [AnimalController::class, 'listarEditados'])->name('editados.listar');
+
 Route::get('/usuarios', [UsuarioController::class, 'listar'])->name('usuarios.listar');
 
 // Rota para listar animais encontrados e ativos
@@ -91,3 +93,10 @@ Route::post('/recusar-caso', [AnimalController::class, 'recusar'])->name('animal
 Route::post('/resolver-caso', [AnimalController::class, 'resolver'])->name('animal.resolver');
 Route::post('/inativar-caso', [AnimalController::class, 'inativar'])->name('animal.inativar');
 Route::post('/reativar-caso', [AnimalController::class, 'reativar'])->name('animal.reativar');
+
+// Detalhes de edição (visualizar antes/depois) - receber id via POST
+Route::post('/detalhes-ce', [EditadosController::class, 'detalhesEditado'])->name('detalhesCE');
+
+// Ações específicas para edições propostas
+Route::post('/aceitar-edicao', [AnimalController::class, 'aceitarEdicao'])->name('animal.aceitarEdicao');
+Route::post('/recusar-edicao', [AnimalController::class, 'recusarEdicao'])->name('animal.recusarEdicao');
