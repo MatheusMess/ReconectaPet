@@ -603,7 +603,6 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
           onTap: () {
             Navegacao.irParaDetalhesAnimal(context, animal);
           },
-          // REMOVIDO: onLongPress - não mostra mais opções na tela inicial
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -767,16 +766,6 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
                     ],
                   ),
                 ),
-
-                // CORRIGIDO: Removido o ícone de seta que causava overlay
-                // const Padding(
-                //   padding: EdgeInsets.only(left: 8),
-                //   child: Icon(
-                //     Icons.arrow_forward_ios,
-                //     size: 16,
-                //     color: Colors.grey,
-                //   ),
-                // ),
               ],
             ),
           ),
@@ -912,8 +901,6 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
     }
   }
 
-  // REMOVIDO: _mostrarOpcoesAnimal - não mostra mais opções na tela inicial
-
   void _confirmarRemocaoAnimal(Animal animal) async {
     showDialog(
       context: context,
@@ -1038,18 +1025,6 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     onTap: () {
                       Navegacao.irParaEditarPerfil(context);
-                    },
-                  ),
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: const Icon(
-                      Icons.notifications,
-                      color: Colors.orange,
-                    ),
-                    title: const Text("Notificações"),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () {
-                      Navegacao.irParaConfiguracoesNotificacao(context);
                     },
                   ),
                   const Divider(height: 1),
@@ -1232,7 +1207,6 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
                                 trailing: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    // NOVO: Ícone de lixeira para excluir
                                     IconButton(
                                       icon: const Icon(
                                         Icons.delete,
@@ -1245,7 +1219,6 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
                                       },
                                     ),
                                     const SizedBox(width: 8),
-                                    // Ícone de edição
                                     const Icon(
                                       Icons.edit,
                                       size: 20,
