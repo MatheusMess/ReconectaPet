@@ -3,7 +3,7 @@
     $urlDetalhes = url('d' . trim(request()->path(), '/'));
 @endphp
 @if(!$usuario)
-    @foreach($informacoes as $animal)
+    @forelse($informacoes as $animal)
         <div  class="col-md-6 col-lg-4 mb-4">
             <div id="item" class="card h-100">
                 <div class="img"><img src="{{ file_exists(public_path('images/animais/'.$animal['id'].'/imagem1.png')) ? asset('images/animais/'.$animal['id'].'/imagem1.png') : asset('images/animais/noimg.jpg') }}" class="card-img-top" alt="Imagem do {{ $animal['tipo'] }}"></div>
@@ -32,9 +32,13 @@
                 </div>
             </div>
         </div>
-    @endforeach
+    @empty
+        <div class="col-12 text-center mt-5">
+            <h5><b>Nenhum registro encontrado</b></h5>
+        </div>
+    @endforelse
 @else
-    @foreach($informacoes as $usuario)
+    @forelse($informacoes as $usuario)
         <div  class="col-md-6 col-lg-4 mb-4">
             <div id="item" class="card h-100">
                 <div class="img"><img src="{{ file_exists(public_path('images/usuarios/'.$usuario['id'].'.png')) ? asset('images/usuarios/'.$usuario['id'].'.png') : asset('images/usuarios/1.png') }}" class="card-img-top" alt="Imagem do {{ $usuario['tipo'] }}"></div>
@@ -48,7 +52,11 @@
                 </div>
             </div>
         </div>
-    @endforeach
+    @empty
+        <div class="col-12 text-center mt-5">
+            <h5><b>Nenhum registro encontrado</b></h5>
+        </div>
+    @endforelse
 
 @endif
 @include('components.css.CSSlista')

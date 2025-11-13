@@ -60,7 +60,27 @@ class EditadosController extends Controller
                 }
             }
         }
+        $editado = \App\Models\Editados::where('animal_id', $id)->first();
+        $animal  = \App\Models\Animal::find($id);
 
+        if ($editado && $animal) {
+        // Atualiza apenas se o campo editado tiver valor
+        $animal->update([
+            'nome'             => $editado->n_nome             ?: $animal->nome,
+            'tipo'             => $editado->n_tipo             ?: $animal->tipo,
+            'raca'             => $editado->n_raca             ?: $animal->raca,
+            'tam'              => $editado->n_tam              ?: $animal->tam,
+            'sexo'             => $editado->n_sexo             ?: $animal->sexo,
+            'cor'              => $editado->n_cor              ?: $animal->cor,
+            'aparencia'        => $editado->n_aparencia        ?: $animal->aparencia,
+            'lugar_visto'      => $editado->n_lugar_visto      ?: $animal->lugar_visto,
+            'lugar_encontrado' => $editado->n_lugar_encontrado ?: $animal->lugar_encontrado,
+            'situacao'         => $editado->n_situacao         ?: $animal->situacao,
+        ]);
+
+        // Exclui o registro de edição (já foi aplicado)
+        $editado->delete();
+    }
         return (new AnimalController())->DetalheAnimal($request);
     }
 }

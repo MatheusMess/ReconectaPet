@@ -15,4 +15,18 @@ class Animal extends Model
      * @var string
      */
     protected $table = 'animais';
+    protected $fillable = [
+        'nome',
+        'tipo',
+        'raca',
+        'tam',
+        'sexo',
+        'cor',
+        'aparencia',
+        'lugar_visto',
+        'lugar_encontrado',
+        'situacao',
+        'status',
+        'usuario_id', // se existir relacionamento com usuário
+    ];
 }
