@@ -13,11 +13,11 @@
         margin-top: 20px;
     }
     .img{
-        object-fit: cover; 
-        object-position: center; 
+        object-fit: cover;
+        object-position: center;
         height: 150px;
         width: 150px;
-        
+
     }
     #item{
         display: flex;
@@ -52,16 +52,13 @@
         img{
         width: 150px;
         height: 250px;
-        object-fit: cover; 
-        object-position: center; 
+        object-fit: cover;
+        object-position: center;
         border-radius: 30px 30px 0 0;
     }
     #img{
         border-radius: 30px 30px 0 0;
     }
-    }
-    #teste{
-        color: black;
     }
     #cardAnimal{
         margin-bottom: 200px;
@@ -76,10 +73,15 @@
 
     /* Contorno escuro nas letras do nome (card-title) */
     .card-title {
-        color: #fff; /* cor do texto */
+        color: white; /* cor do texto */
+        b{
+            font-size: 35px;
+            font-style: bold;
+        }
+
         display: inline-block;
         font-weight: 700;
-        -webkit-text-stroke: 1.5px rgba(0,0,0,0.88); /* contorno para WebKit */
+        -webkit-text-stroke: 1.5px rgb(0,0,0); /* contorno para WebKit */
         padding: 2px 6px;
         border-radius: 30px;
         -webkit-font-smoothing: antialiased;

@@ -98,5 +98,5 @@ Route::post('/reativar-caso', [AnimalController::class, 'reativar'])->name('anim
 Route::post('/detalhes-ce', [EditadosController::class, 'detalhesEditado'])->name('detalhesCE');
 
 // Ações específicas para edições propostas
-Route::post('/aceitar-edicao', [AnimalController::class, 'aceitarEdicao'])->name('animal.aceitarEdicao');
-Route::post('/recusar-edicao', [AnimalController::class, 'recusarEdicao'])->name('animal.recusarEdicao');
+Route::post('/aceitar-edicao', [EditadosController::class, 'aceitarEdicao'])->name('editar.aceitar');
+Route::post('/recusar-edicao', [AnimalController::class, 'recusarEdicao'])->name('editar.recusar');
