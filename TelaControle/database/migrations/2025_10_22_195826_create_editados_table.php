@@ -6,39 +6,55 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('editados', function (Blueprint $table) {
-            // referência ao animal original
-            $table->unsignedBigInteger('id');
-            $table->primary('id');
-            $table->foreign('id')->references('id')->on('animais')->onDelete('cascade');
-            $table->string('n_nome')->nullable();
 
-            $table->enum('n_tipo', ['Gato', 'Cachorro', 'Outro'])->nullable();
-            $table->enum('n_situacao', ['Perdido', 'Encontrado'])->nullable();
+            // animal que está sendo editado
+            $table->id();
+            $table->foreignId('animal_id')
+                ->constrained('animais')
+                ->onDelete('cascade');
+
+            // Novos valores sugeridos (cópia fiel da tabela animais)
+            $table->string('n_nome')->nullable();
+            $table->string('n_especie')->nullable();
             $table->string('n_raca')->nullable();
+            $table->string('n_sexo')->nullable();
+            $table->string('n_porte')->nullable();
+            $table->integer('n_idade')->nullable();
             $table->string('n_cor')->nullable();
-            $table->enum('n_tam', ['Pequeno', 'Medio', 'Grande'])->nullable();
-            $table->enum('n_sexo', ['Macho', 'Fêmea'])->nullable();
-            $table->text('n_aparencia')->nullable();
-            $table->text('n_lugar_visto')->nullable();
-            $table->text('n_lugar_encontrado')->nullable();
-            $table->string('n_imagem1')->nullable();
-            $table->string('n_imagem2')->nullable();
-            $table->string('n_imagem3')->nullable();
-            $table->string('n_imagem4')->nullable();
+
+            $table->text('n_caracteristicas')->nullable();
+            $table->text('n_descricao')->nullable();
+
+            // lista de imagens sugeridas
+            $table->json('n_imagens')->nullable();
+
+            // localização sugerida
+            $table->string('n_cidade')->nullable();
+            $table->string('n_bairro')->nullable();
+            $table->string('n_rua')->nullable();
+
+            // desaparecimento
+            $table->string('n_ultimo_local_visto')->nullable();
+            $table->string('n_endereco_desaparecimento')->nullable();
+            $table->date('n_data_desaparecimento')->nullable();
+
+            // status sugerido (enum atualizado)
+            $table->enum('n_status', [
+                'perdido',
+                'encontrado',
+                'desaparecido',
+                'resgatado',
+                'adocao',
+                'adotado'
+            ])->nullable();
 
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('editados');

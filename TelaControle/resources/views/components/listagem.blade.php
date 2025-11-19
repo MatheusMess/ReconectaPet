@@ -1,49 +1,80 @@
-<div class="row container pai">
-    @foreach($animais as $animal)
-    <div class="col s12 m3" style="height: 300px; margin-bottom: 180px;" >
-        <div class="card">
-            <div class="card-image">
-                {{-- Principal imagem do animal (imagem1) --}}
-                <img id="img" height="175px" src="{{ file_exists(public_path('images/animais/'.$animal['id'].'/imagem1.png')) ? asset('images/animais/'.$animal['id'].'/imagem1.png') : asset('images/animais/noimg.jpg') }}"alt="{{ $animal['nome'] ?? 'Animal' }}">
+@props(['animais', 'info' => 1])
 
-                {{-- "Sem coleira" caso o animal seja registrado sem nome --}}
+@php
+    use Illuminate\Support\Str;
+@endphp
+
+<div class="row container pai">
+
+    @foreach($animais as $animal)
+    <div class="col s12 m3" style="height: 300px; margin-bottom: 180px;">
+        <div class="card">
+
+            {{-- IMAGEM --}}
+            <div class="card-image">
+
+                @php 
+                    $images = $animal->imagens ?? [];
+                    $img = $images[0] ?? null;
+
+                    if (!$img || Str::contains($img, 'detalhes-do-animal')) {
+                        $img = asset('images/animais/noimg.jpg');
+                    }
+                    elseif (!Str::startsWith($img, ['http://', 'https://'])) {
+                        $img = asset($img);
+                    }
+                @endphp
+                
+                <img id="img" height="175px" 
+                     src="{{ $img }}" 
+                     alt="{{ $animal->nome ?? 'Animal' }}">
+
                 @if(!$animal->nome)
-                    <span style="font-size:20px;" class="card-title"><b>(Sem coleira)</b></span>
+                    <span style="font-size:20px;" class="card-title">
+                        <b>(Sem nome)</b>
+                    </span>
                 @else
-                    <span class="card-title"><b><b>{{ $animal->nome }}</b></b></span>
+                    <span class="card-title">
+                        <b>{{ $animal->nome }}</b>
+                    </span>
                 @endif
 
-                {{-- Ver Detalhes --}}
-                <form action="{{ route('site.detalheAnimal') }}" method="POST" class="halfway-fab">
-                    @csrf   {{-- Token de segurança obrigatório do Laravel --}}
-                    <input type="hidden" name="id" value="{{ $animal->id }}">
-                    <button id="ic" type="submit" class="btn-floating halfway-fab waves-effect waves-light cyan">
-                        <i id="ic" class="material-icons">visibility</i>
-                    </button>
-                </form>
+                {{-- DETALHES (GET) --}}
+                <a href="{{ route('animal.detalhes.view', $animal->id) }}"
+                   class="btn-floating halfway-fab waves-effect waves-light cyan">
+                    <i class="material-icons">visibility</i>
+                </a>
+
             </div>
+
+            {{-- INFO --}}
             <div class="card-content">
                 <ul class="info">
-                    @if ($info === 1)    {{--Todos animais--}}
-                        <li><b>Situação: </b>{{ $animal['situacao'] }}</li>
-                        <li><b>Status: </b>{{ $animal['status'] }}</li>
-                        <li><b>Animal: </b>{{ $animal['tipo'] }}</li>
-                        <li><b>Sexo:   </b>{{ $animal['sexo'] }}</li>
-                    @elseif ($info === 2){{--Mesmo status--}}
-                        <li><b>Animal: </b>{{ $animal->tipo }}</li>
-                        <li><b>Raça:   </b>{{ $animal->raca }}</li>
-                        <li><b>Sexo:   </b>{{ $animal->sexo }}</li>
-                        <li><b>Situação: </b>{{ $animal['situacao'] }}</li>
-                    @else                {{--Mesma situação e status--}}
-                        <li><b>Animal: </b>{{ $animal->tipo }}</li>
-                        <li><b>Raça:   </b>{{ $animal->raca }}</li>
-                        <li><b>Sexo:   </b>{{ $animal->sexo }}</li>
-                        <li><b>Cor:    </b>{{ $animal->cor }}</li>
+
+                    @if ($info === 1)
+                        <li><b>Situação:</b> {{ $animal->situacao }}</li>
+                        <li><b>Status:</b> {{ ucfirst($animal->status) }}</li>
+                        <li><b>Animal:</b> {{ $animal->especie }}</li>
+                        <li><b>Sexo:</b> {{ $animal->sexo }}</li>
+
+                    @elseif ($info === 2)
+                        <li><b>Animal:</b> {{ $animal->especie }}</li>
+                        <li><b>Raça:</b> {{ $animal->raca }}</li>
+                        <li><b>Sexo:</b> {{ $animal->sexo }}</li>
+                        <li><b>Situação:</b> {{ $animal->situacao }}</li>
+
+                    @else
+                        <li><b>Animal:</b> {{ $animal->especie }}</li>
+                        <li><b>Raça:</b> {{ $animal->raca }}</li>
+                        <li><b>Sexo:</b> {{ $animal->sexo }}</li>
+                        <li><b>Cor:</b> {{ $animal->cor }}</li>
                     @endif
+
                 </ul>
             </div>
+
         </div>
     </div>
     @endforeach
+
 </div>
-@include('components.css.CSSlistagem')

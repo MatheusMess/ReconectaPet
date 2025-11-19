@@ -44,7 +44,6 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
     });
 
     try {
-      await AnimalService.carregarDadosIniciais();
       final todosAnimais = await AnimalService.buscarAnimais();
 
       setState(() {
@@ -67,6 +66,7 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
       setState(() {
         _carregando = false;
       });
+      _mostrarMensagem('Erro ao carregar animais: $e');
     }
   }
 
@@ -1004,7 +1004,7 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
                     _infoPerfil(
                       "Membro desde",
                       usuario?.dataCriacao != null
-                          ? "${usuario!.dataCriacao.day}/${usuario.dataCriacao.month}/${usuario.dataCriacao.year}"
+                          ? "${usuario!.dataCriacao!.day}/${usuario.dataCriacao!.month}/${usuario.dataCriacao!.year}"
                           : "Outubro 2024",
                       Icons.calendar_today,
                     ),

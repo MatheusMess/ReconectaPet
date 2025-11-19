@@ -2,11 +2,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'animal.dart';
+import 'autenticacao.dart';
+import 'animal_api.dart';
 
 class TelaCadastroAnimalEncontrado extends StatefulWidget {
-  final Function(Animal) onSalvar;
+  final Function(Animal)? onSalvar;
 
-  const TelaCadastroAnimalEncontrado({super.key, required this.onSalvar});
+  const TelaCadastroAnimalEncontrado({super.key, this.onSalvar});
 
   @override
   State<TelaCadastroAnimalEncontrado> createState() =>
@@ -33,6 +35,8 @@ class _TelaCadastroAnimalEncontradoState
   XFile? fotoPrincipal;
   final ImagePicker picker = ImagePicker();
 
+  bool _salvando = false;
+
   Future<void> adicionarFoto({bool isPrincipal = false}) async {
     final XFile? pickedFile = await picker.pickImage(
       source: ImageSource.gallery,
@@ -45,8 +49,17 @@ class _TelaCadastroAnimalEncontradoState
       setState(() {
         if (isPrincipal) {
           fotoPrincipal = pickedFile;
-        } else {
+        } else if (fotosExtras.length < 3) {
+          // ✅ MÁXIMO 3 EXTRAS
           fotosExtras.add(pickedFile);
+        } else {
+          // Mostrar mensagem se tentar adicionar mais que 3 extras
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Máximo de 3 fotos extras atingido"),
+              backgroundColor: Colors.orange,
+            ),
+          );
         }
       });
     }
@@ -79,7 +92,8 @@ class _TelaCadastroAnimalEncontradoState
     });
   }
 
-  void salvarAnimal() {
+  Future<void> salvarAnimal() async {
+    // Validar campos obrigatórios
     if (racaController.text.isEmpty ||
         cores.isEmpty ||
         observacoesController.text.isEmpty ||
@@ -99,46 +113,94 @@ class _TelaCadastroAnimalEncontradoState
       return;
     }
 
-    // Coletar todas as imagens (principal + extras)
-    final List<String> todasImagens = [];
-    if (fotoPrincipal != null) {
-      todasImagens.add(fotoPrincipal!.path);
+    setState(() {
+      _salvando = true;
+    });
+
+    try {
+      // Obter usuário logado
+      final usuarioLogado = AuthService().usuarioLogado;
+      if (usuarioLogado == null) {
+        throw Exception('Usuário não está logado');
+      }
+
+      // Coletar todas as imagens (principal + extras)
+      final List<String> todasImagens = [];
+      if (fotoPrincipal != null) {
+        todasImagens.add(fotoPrincipal!.path);
+      }
+      for (var foto in fotosExtras) {
+        todasImagens.add(foto.path);
+      }
+
+      // Se não tiver nenhuma foto, usar a padrão
+      if (todasImagens.isEmpty) {
+        todasImagens.add("assets/cachorro1.png");
+      }
+
+      // Criar animal com status PENDENTE para aprovação do admin
+      final animal = Animal(
+        nome: nomeController.text.isNotEmpty
+            ? nomeController.text
+            : "Não identificado",
+        descricao: observacoesController.text,
+        raca: racaController.text,
+        cor: cores.join(", "),
+        especie: especieSelecionada!,
+        sexo: sexoSelecionado!,
+        imagens: todasImagens,
+        cidade: cidadeController.text,
+        bairro: bairroController.text,
+        donoId: usuarioLogado.id,
+        // CAMPOS ESPECÍFICOS PARA ANIMAL ENCONTRADO
+        localEncontro: localEncontroController.text,
+        enderecoEncontro: enderecoController.text,
+        dataEncontro: dataEncontroController.text,
+        situacaoSaude: situacaoSaude,
+        // Identificar como animal encontrado e PENDENTE
+        tipo: 'encontrado',
+        ativo: false, // Inicialmente inativo até aprovação
+        // Campos de usuário para exibição
+        userNome: usuarioLogado.nome,
+        userTelefone: usuarioLogado.telefone,
+        userEmail: usuarioLogado.email,
+      );
+
+      // Enviar para API Laravel (status pendente)
+      final animalSalvo = await AnimalApiService.cadastrarAnimal(animal);
+
+      // Mostrar mensagem de sucesso
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Animal enviado para aprovação!'),
+          backgroundColor: Colors.green[700],
+          duration: const Duration(seconds: 3),
+        ),
+      );
+
+      // Chamar callback se existir
+      widget.onSalvar?.call(animalSalvo);
+
+      // Voltar para tela anterior
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      print('❌ Erro ao salvar animal: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao enviar animal: $e'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _salvando = false;
+        });
+      }
     }
-    for (var foto in fotosExtras) {
-      todasImagens.add(foto.path);
-    }
-
-    // Se não tiver nenhuma foto, usar a padrão
-    if (todasImagens.isEmpty) {
-      todasImagens.add("assets/cachorro1.png");
-    }
-
-    // CORREÇÃO: Usar os novos campos específicos para animais encontrados
-    final animal = Animal(
-      nome: nomeController.text.isNotEmpty
-          ? nomeController.text
-          : "Não identificado",
-      descricao: observacoesController.text,
-      raca: racaController.text,
-      cor: cores.join(", "),
-      especie: especieSelecionada!,
-      sexo: sexoSelecionado!,
-      imagens: todasImagens,
-      cidade: cidadeController.text,
-      bairro: bairroController.text,
-      donoId: "usuario_atual", // Será substituído pela tela principal
-      // CAMPOS ESPECÍFICOS PARA ANIMAL ENCONTRADO
-      localEncontro: localEncontroController.text,
-      enderecoEncontro: enderecoController.text,
-      dataEncontro: dataEncontroController.text,
-      situacaoSaude: situacaoSaude,
-
-      // Identificar como animal encontrado
-      tipo: 'encontrado',
-    );
-
-    widget.onSalvar(animal);
-    Navigator.pop(context);
   }
 
   @override
@@ -153,137 +215,181 @@ class _TelaCadastroAnimalEncontradoState
         elevation: 2,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Título da seção
-            _buildSectionTitle("ANIMAL ENCONTRADO - PROCURA-SE DONO"),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Título da seção
+                _buildSectionTitle("ANIMAL ENCONTRADO - PROCURA-SE DONO"),
 
-            // FOTO PRINCIPAL
-            _buildSectionTitle("Foto Principal", fontSize: 14),
-            const SizedBox(height: 8),
-            _buildFotoPrincipal(),
-            const SizedBox(height: 20),
+                // Informação sobre aprovação
+                _buildInfoAprovacao(),
+                const SizedBox(height: 20),
 
-            // FOTOS EXTRAS
-            _buildSectionTitle("Fotos Extras", fontSize: 14),
-            const SizedBox(height: 8),
-            _buildFotosExtras(),
-            const SizedBox(height: 20),
+                // FOTO PRINCIPAL
+                _buildSectionTitle("Foto Principal *", fontSize: 14),
+                const SizedBox(height: 8),
+                _buildFotoPrincipal(),
+                const SizedBox(height: 20),
 
-            // DADOS DO ANIMAL
-            _buildSectionTitle("Dados do Animal Encontrado", fontSize: 14),
-            const SizedBox(height: 12),
+                // FOTOS EXTRAS (MÁXIMO 3)
+                _buildSectionTitle("Fotos Extras (opcional)", fontSize: 14),
+                const SizedBox(height: 8),
+                _buildFotosExtras(),
+                const SizedBox(height: 20),
 
-            // Raça
-            _buildTextField(
-              controller: racaController,
-              label: "Raça do animal *",
-              hint: "Ex: Labrador, Siamesa, SRD",
-            ),
-            const SizedBox(height: 16),
+                // DADOS DO ANIMAL
+                _buildSectionTitle("Dados do Animal Encontrado", fontSize: 14),
+                const SizedBox(height: 12),
 
-            // Cores
-            _buildCorField(),
-            const SizedBox(height: 16),
+                // Raça
+                _buildTextField(
+                  controller: racaController,
+                  label: "Raça do animal *",
+                  hint: "Ex: Labrador, Siamesa, SRD",
+                ),
+                const SizedBox(height: 16),
 
-            // Espécie
-            _buildDropdown(
-              value: especieSelecionada,
-              hint: "Espécie *",
-              items: ["Cachorro", "Gato"],
-              onChanged: (value) => setState(() => especieSelecionada = value),
-            ),
-            const SizedBox(height: 16),
+                // Cores
+                _buildCorField(),
+                const SizedBox(height: 16),
 
-            // Nome (opcional - pode não saber o nome)
-            _buildTextField(
-              controller: nomeController,
-              label: "Nome do animal (se souber)",
-              hint: "Ex: Rex, Luna, Bob - ou deixe em branco",
-            ),
-            const SizedBox(height: 16),
+                // Espécie
+                _buildDropdown(
+                  value: especieSelecionada,
+                  hint: "Espécie *",
+                  items: ["Cachorro", "Gato"],
+                  onChanged: (value) =>
+                      setState(() => especieSelecionada = value),
+                ),
+                const SizedBox(height: 16),
 
-            // Sexo
-            _buildDropdown(
-              value: sexoSelecionado,
-              hint: "Sexo *",
-              items: ["Macho", "Fêmea"],
-              onChanged: (value) => setState(() => sexoSelecionado = value),
-            ),
-            const SizedBox(height: 16),
+                // Nome (opcional)
+                _buildTextField(
+                  controller: nomeController,
+                  label: "Nome do animal (se souber)",
+                  hint: "Ex: Rex, Luna, Bob - ou deixe em branco",
+                ),
+                const SizedBox(height: 16),
 
-            // Situação de Saúde
-            _buildDropdown(
-              value: situacaoSaude,
-              hint: "Situação de saúde",
-              items: [
-                "Saudável",
-                "Machucado",
-                "Doente",
-                "Desnutrido",
-                "Não avaliado",
+                // Sexo
+                _buildDropdown(
+                  value: sexoSelecionado,
+                  hint: "Sexo *",
+                  items: ["Macho", "Fêmea"],
+                  onChanged: (value) => setState(() => sexoSelecionado = value),
+                ),
+                const SizedBox(height: 16),
+
+                // Situação de Saúde
+                _buildDropdown(
+                  value: situacaoSaude,
+                  hint: "Situação de saúde",
+                  items: [
+                    "Saudável",
+                    "Machucado",
+                    "Doente",
+                    "Desnutrido",
+                    "Não avaliado",
+                  ],
+                  onChanged: (value) => setState(() => situacaoSaude = value),
+                ),
+                const SizedBox(height: 20),
+
+                // LOCAL DO ENCONTRO
+                _buildSectionTitle("Local do Encontro", fontSize: 14),
+                const SizedBox(height: 12),
+
+                // Local onde foi encontrado
+                _buildTextField(
+                  controller: localEncontroController,
+                  label: "Local onde foi encontrado *",
+                  hint: "Ex: Parque Central, Praça da Matriz, Rua...",
+                ),
+                const SizedBox(height: 16),
+
+                // Cidade
+                _buildTextField(
+                  controller: cidadeController,
+                  label: "Cidade *",
+                  hint: "Ex: São Paulo, Rio de Janeiro",
+                ),
+                const SizedBox(height: 16),
+
+                // Bairro
+                _buildTextField(
+                  controller: bairroController,
+                  label: "Bairro *",
+                  hint: "Ex: Centro, Jardins, Copacabana",
+                ),
+                const SizedBox(height: 16),
+
+                // Endereço aproximado
+                _buildTextField(
+                  controller: enderecoController,
+                  label: "Endereço aproximado *",
+                  hint: "Ex: Rua das Flores, 123",
+                ),
+                const SizedBox(height: 16),
+
+                // Data do encontro
+                _buildTextField(
+                  controller: dataEncontroController,
+                  label: "Data do encontro *",
+                  hint: "Ex: 12/08/2025",
+                ),
+                const SizedBox(height: 20),
+
+                // OBSERVAÇÕES
+                _buildSectionTitle("Observações Importantes", fontSize: 14),
+                const SizedBox(height: 8),
+                _buildObservacoesField(),
+                const SizedBox(height: 30),
+
+                // BOTÃO SALVAR
+                _buildSaveButton(),
               ],
-              onChanged: (value) => setState(() => situacaoSaude = value),
             ),
-            const SizedBox(height: 20),
+          ),
 
-            // LOCAL DO ENCONTRO
-            _buildSectionTitle("Local do Encontro", fontSize: 14),
-            const SizedBox(height: 12),
-
-            // Local onde foi encontrado
-            _buildTextField(
-              controller: localEncontroController,
-              label: "Local onde foi encontrado *",
-              hint: "Ex: Parque Central, Praça da Matriz, Rua...",
+          // Loading overlay
+          if (_salvando)
+            Container(
+              color: Colors.black54,
+              child: const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
             ),
-            const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
 
-            // Cidade
-            _buildTextField(
-              controller: cidadeController,
-              label: "Cidade *",
-              hint: "Ex: São Paulo, Rio de Janeiro",
+  Widget _buildInfoAprovacao() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.blue[50],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.blue[200]!),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.info_outline, color: Colors.blue[700], size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              "Seu animal será enviado para aprovação antes de aparecer publicamente.",
+              style: TextStyle(color: Colors.blue[800], fontSize: 12),
             ),
-            const SizedBox(height: 16),
-
-            // Bairro
-            _buildTextField(
-              controller: bairroController,
-              label: "Bairro *",
-              hint: "Ex: Centro, Jardins, Copacabana",
-            ),
-            const SizedBox(height: 16),
-
-            // Endereço aproximado
-            _buildTextField(
-              controller: enderecoController,
-              label: "Endereço aproximado *",
-              hint: "Ex: Rua das Flores, 123",
-            ),
-            const SizedBox(height: 16),
-
-            // Data do encontro
-            _buildTextField(
-              controller: dataEncontroController,
-              label: "Data do encontro *",
-              hint: "Ex: 12/08/2025",
-            ),
-            const SizedBox(height: 20),
-
-            // OBSERVAÇÕES
-            _buildSectionTitle("Observações Importantes", fontSize: 14),
-            const SizedBox(height: 8),
-            _buildObservacoesField(),
-            const SizedBox(height: 30),
-
-            // BOTÃO SALVAR
-            _buildSaveButton(),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -426,7 +532,7 @@ class _TelaCadastroAnimalEncontradoState
                 ],
               );
             }),
-            if (fotosExtras.length < 5)
+            if (fotosExtras.length < 3) // ✅ MÁXIMO 3 EXTRAS
               GestureDetector(
                 onTap: () => adicionarFoto(isPrincipal: false),
                 child: Container(
@@ -449,6 +555,10 @@ class _TelaCadastroAnimalEncontradoState
                         "Adicionar",
                         style: TextStyle(color: Colors.grey[600], fontSize: 12),
                       ),
+                      Text(
+                        "(${3 - fotosExtras.length} restantes)",
+                        style: TextStyle(color: Colors.grey[500], fontSize: 10),
+                      ),
                     ],
                   ),
                 ),
@@ -457,7 +567,7 @@ class _TelaCadastroAnimalEncontradoState
         ),
         const SizedBox(height: 8),
         Text(
-          "Máximo de 5 fotos extras",
+          "Máximo de 3 fotos extras", // ✅ ATUALIZADO
           style: TextStyle(
             color: Colors.grey[600],
             fontSize: 12,
@@ -568,7 +678,7 @@ class _TelaCadastroAnimalEncontradoState
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: salvarAnimal,
+        onPressed: _salvando ? null : salvarAnimal,
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.green[700],
           foregroundColor: Colors.white,
@@ -576,10 +686,19 @@ class _TelaCadastroAnimalEncontradoState
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           elevation: 2,
         ),
-        child: const Text(
-          "CADASTRAR ANIMAL ENCONTRADO",
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
+        child: _salvando
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : const Text(
+                "ENVIAR PARA APROVAÇÃO",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
       ),
     );
   }

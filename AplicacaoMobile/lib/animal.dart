@@ -1,5 +1,4 @@
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'animal_api.dart';
 
 class Animal {
   final String id;
@@ -16,24 +15,24 @@ class Animal {
   final DateTime? dataAtualizacao;
   final bool ativo;
 
-  // ========== CAMPOS PARA ANIMAIS PERDIDOS ==========
-  final String? ultimoLocalVisto; // Apenas para perdidos
-  final String? enderecoDesaparecimento; // Apenas para perdidos
-  final String? dataDesaparecimento; // Apenas para perdidos
+  // Campos para animais perdidos
+  final String? ultimoLocalVisto;
+  final String? enderecoDesaparecimento;
+  final String? dataDesaparecimento;
 
-  // ========== CAMPOS PARA ANIMAIS ENCONTRADOS ==========
-  final String? localEncontro; // Apenas para encontrados
-  final String? enderecoEncontro; // Apenas para encontrados
-  final String? dataEncontro; // Apenas para encontrados
-  final String? situacaoSaude; // Principalmente para encontrados
-  final String? contatoResponsavel; // Principalmente para encontrados
+  // Campos para animais encontrados
+  final String? localEncontro;
+  final String? enderecoEncontro;
+  final String? dataEncontro;
+  final String? situacaoSaude;
+  final String? contatoResponsavel;
 
-  // ========== CAMPOS DE USUÁRIO ==========
-  final String donoId; // ID do usuário que cadastrou o animal (OBRIGATÓRIO)
+  // Campos de usuário
+  final String donoId;
   final String? userNome;
   final String? userTelefone;
   final String? userEmail;
-  final String tipo; // 'perdido' ou 'encontrado'
+  final String tipo;
 
   Animal({
     String? id,
@@ -46,24 +45,21 @@ class Animal {
     required this.imagens,
     required this.cidade,
     required this.bairro,
-    required this.donoId, // Agora é obrigatório
-    // Campos base
+    required this.donoId,
+
     DateTime? dataCriacao,
     DateTime? dataAtualizacao,
     this.ativo = true,
 
-    // Campos usuário
     this.userNome,
     this.userTelefone,
     this.userEmail,
     this.tipo = 'perdido',
 
-    // ========== CAMPOS PERDIDOS ==========
     this.ultimoLocalVisto,
     this.enderecoDesaparecimento,
     this.dataDesaparecimento,
 
-    // ========== CAMPOS ENCONTRADOS ==========
     this.localEncontro,
     this.enderecoEncontro,
     this.dataEncontro,
@@ -73,15 +69,13 @@ class Animal {
        dataCriacao = dataCriacao ?? DateTime.now(),
        dataAtualizacao = dataAtualizacao ?? DateTime.now();
 
-  // ========== GETTERS ESPECÍFICOS ==========
-
+  // Getters
   String get imagemPrincipal =>
       imagens.isNotEmpty ? imagens[0] : "assets/cachorro1.png";
 
   bool get isPerdido => tipo == 'perdido';
   bool get isEncontrado => tipo == 'encontrado';
 
-  // Localização baseada no tipo
   String get localizacaoDisplay {
     if (isPerdido) {
       return ultimoLocalVisto ?? 'Local desconhecido';
@@ -90,7 +84,6 @@ class Animal {
     }
   }
 
-  // Endereço baseado no tipo
   String get enderecoDisplay {
     if (isPerdido) {
       return enderecoDesaparecimento ?? 'Endereço não informado';
@@ -99,7 +92,6 @@ class Animal {
     }
   }
 
-  // Data baseada no tipo
   String get dataDisplay {
     if (isPerdido) {
       return dataDesaparecimento ?? 'Data não informada';
@@ -108,7 +100,6 @@ class Animal {
     }
   }
 
-  // Telefone de contato baseado no tipo
   String get telefoneContato {
     if (isEncontrado && contatoResponsavel != null) {
       return contatoResponsavel!;
@@ -131,14 +122,12 @@ class Animal {
     return 'Desconhecido';
   }
 
-  // Método para verificar se o animal é recente (últimos 7 dias)
   bool get isRecente {
     final agora = DateTime.now();
     final diferenca = agora.difference(dataCriacao ?? agora);
     return diferenca.inDays <= 7;
   }
 
-  // Formatar data para exibição
   String get dataFormatada {
     if (dataCriacao != null) {
       final now = DateTime.now();
@@ -157,98 +146,7 @@ class Animal {
     return dataDisplay;
   }
 
-  // ========== MÉTODOS DE CONVERSÃO ==========
-
-  // Converter para Map (para armazenar no SharedPreferences)
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'nome': nome,
-      'descricao': descricao,
-      'raca': raca,
-      'cor': cor,
-      'especie': especie,
-      'sexo': sexo,
-      'imagens': imagens,
-      'cidade': cidade,
-      'bairro': bairro,
-
-      // Campos base
-      'data_criacao': dataCriacao?.toIso8601String(),
-      'data_atualizacao': dataAtualizacao?.toIso8601String(),
-      'ativo': ativo,
-
-      // Campos usuário
-      'dono_id': donoId, // ID do dono
-      'user_nome': userNome,
-      'user_telefone': userTelefone,
-      'user_email': userEmail,
-      'tipo': tipo,
-
-      // ========== CAMPOS PERDIDOS ==========
-      'ultimo_local_visto': ultimoLocalVisto,
-      'endereco_desaparecimento': enderecoDesaparecimento,
-      'data_desaparecimento': dataDesaparecimento,
-
-      // ========== CAMPOS ENCONTRADOS ==========
-      'local_encontro': localEncontro,
-      'endereco_encontro': enderecoEncontro,
-      'data_encontro': dataEncontro,
-      'situacao_saude': situacaoSaude,
-      'contato_responsavel': contatoResponsavel,
-    };
-  }
-
-  // Converter de Map (para carregar do SharedPreferences)
-  factory Animal.fromMap(Map<String, dynamic> map) {
-    return Animal(
-      id: map['id']?.toString() ?? '',
-      nome: map['nome'] ?? '',
-      descricao: map['descricao'] ?? '',
-      raca: map['raca'] ?? '',
-      cor: map['cor'] ?? '',
-      especie: map['especie'] ?? '',
-      sexo: map['sexo'] ?? '',
-      imagens: List<String>.from(map['imagens'] ?? []),
-      cidade: map['cidade'] ?? '',
-      bairro: map['bairro'] ?? '',
-      donoId: map['dono_id'] ?? '', // ID do dono
-      // Campos base
-      dataCriacao: map['data_criacao'] != null
-          ? DateTime.parse(map['data_criacao'])
-          : null,
-      dataAtualizacao: map['data_atualizacao'] != null
-          ? DateTime.parse(map['data_atualizacao'])
-          : null,
-      ativo: map['ativo'] ?? true,
-
-      // Campos usuário
-      userNome: map['user_nome'],
-      userTelefone: map['user_telefone'],
-      userEmail: map['user_email'],
-      tipo: map['tipo'] ?? 'perdido',
-
-      // ========== CAMPOS PERDIDOS ==========
-      ultimoLocalVisto: map['ultimo_local_visto'],
-      enderecoDesaparecimento: map['endereco_desaparecimento'],
-      dataDesaparecimento: map['data_desaparecimento'],
-
-      // ========== CAMPOS ENCONTRADOS ==========
-      localEncontro: map['local_encontro'],
-      enderecoEncontro: map['endereco_encontro'],
-      dataEncontro: map['data_encontro'],
-      situacaoSaude: map['situacao_saude'],
-      contatoResponsavel: map['contato_responsavel'],
-    );
-  }
-
-  // Converter para JSON
-  String toJson() => json.encode(toMap());
-
-  // Converter de JSON
-  factory Animal.fromJson(String source) => Animal.fromMap(json.decode(source));
-
-  // Cópia do animal com campos atualizados
+  // Métodos de cópia e conversão
   Animal copyWith({
     String? id,
     String? nome,
@@ -268,13 +166,9 @@ class Animal {
     String? userTelefone,
     String? userEmail,
     String? tipo,
-
-    // Campos perdidos
     String? ultimoLocalVisto,
     String? enderecoDesaparecimento,
     String? dataDesaparecimento,
-
-    // Campos encontrados
     String? localEncontro,
     String? enderecoEncontro,
     String? dataEncontro,
@@ -300,14 +194,10 @@ class Animal {
       userTelefone: userTelefone ?? this.userTelefone,
       userEmail: userEmail ?? this.userEmail,
       tipo: tipo ?? this.tipo,
-
-      // Campos perdidos
       ultimoLocalVisto: ultimoLocalVisto ?? this.ultimoLocalVisto,
       enderecoDesaparecimento:
           enderecoDesaparecimento ?? this.enderecoDesaparecimento,
       dataDesaparecimento: dataDesaparecimento ?? this.dataDesaparecimento,
-
-      // Campos encontrados
       localEncontro: localEncontro ?? this.localEncontro,
       enderecoEncontro: enderecoEncontro ?? this.enderecoEncontro,
       dataEncontro: dataEncontro ?? this.dataEncontro,
@@ -329,234 +219,54 @@ class Animal {
   String toString() {
     return 'Animal(id: $id, nome: $nome, tipo: $tipo, donoId: $donoId)';
   }
-
-  // ========== EXEMPLOS ==========
-
-  // Lista de exemplos removida
-  static List<Animal> exemplos = [];
 }
 
-// Serviço para gerenciar animais com armazenamento interno
+// Serviço para gerenciar animais usando API
 class AnimalService {
-  static const String _storageKey = 'animais_salvos';
-
-  // Salvar lista de animais no SharedPreferences
-  static Future<void> _salvarAnimais(List<Animal> animais) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final listaMap = animais.map((animal) => animal.toMap()).toList();
-      await prefs.setString(_storageKey, json.encode(listaMap));
-    } catch (e) {
-      print('Erro ao salvar animais: $e');
-      throw Exception('Erro ao salvar dados localmente');
-    }
-  }
-
-  // Carregar lista de animais do SharedPreferences
-  static Future<List<Animal>> _carregarAnimais() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final animaisJson = prefs.getString(_storageKey);
-
-      if (animaisJson == null) {
-        return [];
-      }
-
-      final List<dynamic> listaMap = json.decode(animaisJson);
-      return listaMap.map((map) => Animal.fromMap(map)).toList();
-    } catch (e) {
-      print('Erro ao carregar animais: $e');
-      return [];
-    }
-  }
-
   // Buscar todos os animais
   static Future<List<Animal>> buscarAnimais({
     String? tipo,
     String? cidade,
-    String? donoId, // Filtro opcional por dono
+    String? donoId,
   }) async {
-    try {
-      List<Animal> todosAnimais = await _carregarAnimais();
-
-      // Aplicar filtros
-      if (tipo != null) {
-        todosAnimais = todosAnimais
-            .where((animal) => animal.tipo == tipo)
-            .toList();
-      }
-
-      if (cidade != null && cidade != 'Todas') {
-        todosAnimais = todosAnimais
-            .where((animal) => animal.cidade == cidade)
-            .toList();
-      }
-
-      if (donoId != null) {
-        todosAnimais = todosAnimais
-            .where((animal) => animal.donoId == donoId)
-            .toList();
-      }
-
-      // Filtrar apenas animais ativos
-      todosAnimais = todosAnimais.where((animal) => animal.ativo).toList();
-
-      return todosAnimais;
-    } catch (e) {
-      print('Erro no AnimalService.buscarAnimais: $e');
-      return [];
-    }
+    return await AnimalApiService.buscarAnimais(
+      tipo: tipo,
+      cidade: cidade,
+      donoId: donoId,
+    );
   }
 
   // Buscar animal por ID
   static Future<Animal?> buscarAnimalPorId(String id) async {
-    try {
-      final animais = await _carregarAnimais();
-      return animais.firstWhere(
-        (animal) => animal.id == id && animal.ativo,
-        orElse: () => Animal(
-          nome: '',
-          descricao: '',
-          raca: '',
-          cor: '',
-          especie: '',
-          sexo: '',
-          imagens: [],
-          cidade: '',
-          bairro: '',
-          donoId: '',
-        ),
-      );
-    } catch (e) {
-      print('Erro no AnimalService.buscarAnimalPorId: $e');
-      return null;
-    }
+    return await AnimalApiService.buscarAnimalPorId(id);
   }
 
   // Cadastrar novo animal
   static Future<Animal> cadastrarAnimal(Animal animal) async {
-    try {
-      final animais = await _carregarAnimais();
-
-      // Verificar se já existe um animal com o mesmo ID
-      final animalExistente = animais.any((a) => a.id == animal.id);
-      if (animalExistente) {
-        throw Exception('Já existe um animal com este ID');
-      }
-
-      // Adicionar o novo animal
-      animais.add(animal);
-
-      // Salvar a lista atualizada
-      await _salvarAnimais(animais);
-
-      return animal;
-    } catch (e) {
-      print('Erro no AnimalService.cadastrarAnimal: $e');
-      throw Exception('Erro ao cadastrar animal: $e');
-    }
+    return await AnimalApiService.cadastrarAnimal(animal);
   }
 
   // Atualizar animal
-  static Future<Animal> atualizarAnimal(Animal animalAtualizado) async {
-    try {
-      final animais = await _carregarAnimais();
-
-      // Encontrar o índice do animal
-      final index = animais.indexWhere(
-        (animal) => animal.id == animalAtualizado.id,
-      );
-
-      if (index == -1) {
-        throw Exception('Animal não encontrado');
-      }
-
-      // Atualizar o animal
-      animais[index] = animalAtualizado.copyWith(
-        dataAtualizacao: DateTime.now(),
-      );
-
-      // Salvar a lista atualizada
-      await _salvarAnimais(animais);
-
-      return animais[index];
-    } catch (e) {
-      print('Erro no AnimalService.atualizarAnimal: $e');
-      throw Exception('Erro ao atualizar animal: $e');
-    }
+  static Future<Animal> atualizarAnimal(Animal animal) async {
+    return await AnimalApiService.atualizarAnimal(animal);
   }
 
-  // Excluir animal (marcar como inativo)
+  // Excluir animal
   static Future<bool> excluirAnimal(String id) async {
-    try {
-      final animais = await _carregarAnimais();
-
-      // Encontrar o índice do animal
-      final index = animais.indexWhere((animal) => animal.id == id);
-
-      if (index == -1) {
-        return false;
-      }
-
-      // Marcar como inativo em vez de remover
-      animais[index] = animais[index].copyWith(
-        ativo: false,
-        dataAtualizacao: DateTime.now(),
-      );
-
-      // Salvar a lista atualizada
-      await _salvarAnimais(animais);
-
-      return true;
-    } catch (e) {
-      print('Erro no AnimalService.excluirAnimal: $e');
-      return false;
-    }
+    return await AnimalApiService.excluirAnimal(id);
   }
 
-  // Buscar animais do usuário logado
+  // Buscar animais do usuário
   static Future<List<Animal>> meusAnimais(String donoId) async {
-    try {
-      return await buscarAnimais(donoId: donoId);
-    } catch (e) {
-      print('Erro no AnimalService.meusAnimais: $e');
-      return [];
-    }
+    return await AnimalApiService.meusAnimais(donoId);
   }
 
-  // Buscar animais por tipo (perdidos ou encontrados)
+  // Buscar animais por tipo
   static Future<List<Animal>> buscarAnimaisPorTipo(String tipo) async {
-    try {
-      return await buscarAnimais(tipo: tipo);
-    } catch (e) {
-      print('Erro no AnimalService.buscarAnimaisPorTipo: $e');
-      return [];
-    }
+    return await AnimalApiService.buscarAnimaisPorTipo(tipo);
   }
 
-  // Limpar todos os dados (apenas para desenvolvimento)
-  static Future<void> limparTodosDados() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(_storageKey);
-    } catch (e) {
-      print('Erro ao limpar dados: $e');
-    }
-  }
-
-  // Carregar dados iniciais (exemplos) se não houver dados salvos
-  static Future<void> carregarDadosIniciais() async {
-    try {
-      final animais = await _carregarAnimais();
-      if (animais.isEmpty) {
-        await _salvarAnimais(Animal.exemplos);
-      }
-    } catch (e) {
-      print('Erro ao carregar dados iniciais: $e');
-    }
-  }
-
-  // Estatísticas gerais
+  // Obter estatísticas
   static Future<Map<String, int>> obterEstatisticas({String? donoId}) async {
     try {
       final animais = await buscarAnimais(donoId: donoId);
@@ -582,5 +292,10 @@ class AnimalService {
         'recentes': 0,
       };
     }
+  }
+
+  // Método vazio para compatibilidade (não faz nada com API)
+  static Future<void> carregarDadosIniciais() async {
+    // Não faz nada na versão com API
   }
 }

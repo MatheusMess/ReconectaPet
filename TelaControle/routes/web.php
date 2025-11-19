@@ -1,93 +1,102 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\CasoPendenteController;
 use App\Http\Controllers\AnimalController;
 use App\Http\Controllers\UsuarioController;
 
+// ===============================
+// ROTAS PRINCIPAIS
+// ===============================
 Route::get('/', function () {
     return view('site.index');
 });
 
+// ===============================
+// ROTAS DE LISTAGEM
+// ===============================
+Route::get('/animais-perdidos', [AnimalController::class, 'listarPerdidos'])
+    ->name('AnimaisPerdidos');
+
+Route::get('/animais-encontrados', [AnimalController::class, 'listarEncontrados'])
+    ->name('AnimaisEncontrados');
+
+// Novos casos
+Route::get('/n-animais-perdidos', [AnimalController::class, 'listarNPerdidos'])
+    ->name('site.listaNPerdidos');
+
+Route::get('/n-animais-encontrados', [AnimalController::class, 'listarNEncontrados'])
+    ->name('site.listaNEncontrados');
+
+// Casos resolvidos, inativados e editados
+Route::get('/casos-resolvidos', [AnimalController::class, 'listarResolvidos'])
+    ->name('CasosResolvidos');
+
+Route::get('/casos-inativados', [AnimalController::class, 'listarInativados'])
+    ->name('CasosInativados');
+
+Route::get('/casos-editados', [AnimalController::class, 'listarEditados'])
+    ->name('CasosEditados');
+
+// Todos os animais
+Route::get('/todos-animais', [AnimalController::class, 'todosAnimais'])
+    ->name('todos.animais');
 
 
-Route::get('/ap', function () {
-    return view('site.AnimaisPerdidos');
-});
-Route::get('/ae', function () {
-    return view('site.AnimaisEncontrados');
-});
+// =======================================================
+// ROTAS DE DETALHES  (GET = tela, POST = ação)
+// =======================================================
+
+// Detalhes gerais
+Route::get('/detalhes-do-animal/{id}', [AnimalController::class, 'viewDetalhe'])
+    ->name('animal.detalhes.view');
+
+Route::post('/detalhes-do-animal', [AnimalController::class, 'DetalheAnimal'])
+    ->name('animal.detalhes');
 
 
+// Detalhes — novos encontrados
+Route::get('/dn-animais-encontrados/{id}', [AnimalController::class, 'viewDNEncontrados'])
+    ->name('site.DNEncontrados.view');
+
+Route::post('/dn-animais-encontrados', [AnimalController::class, 'DNEncontrados'])
+    ->name('site.DNEncontrados');
 
 
-Route::get('/dap', function () {
-    return view('site.TestesDesativados.detalhesAP');
-});
-Route::get('/dae', function () {
-    return view('site.TestesDesativados.detalhesAE');
-});
-Route::get('/dnap', function () {
-    return view('site.TestesDesativados.detalhesNAP');
-});
-Route::get('/dnae', function () {
-    return view('site.TestesDesativados.detalhesNAE');
-});
-Route::get('/dcr', function () {
-    return view('site.TestesDesativados.detalhesCR');
-});
-Route::get('/dca', function () {
-    return view('site.TestesDesativados.detalhesCA');
-});
-Route::get('/dce', function () {
-    return view('site.detalhesCE');
-});
+// Detalhes — novos perdidos
+Route::get('/dn-animais-perdidos/{id}', [AnimalController::class, 'viewDNPerdidos'])
+    ->name('site.DNPerdidos.view');
+
+Route::post('/dn-animais-perdidos', [AnimalController::class, 'DNPerdidos'])
+    ->name('site.DNPerdidos');
 
 
+// Detalhes — Casos Editados
+Route::get('/detalhes-ce/{id}', [AnimalController::class, 'viewDetalhesCE'])
+    ->name('detalhes.ce.view');
 
-Route::get('/nap', function () {
-    return view('site.TestesDesativados.listaNovosAP');
-});
-Route::get('/nae', function () {
-    return view('site.TestesDesativados.listaNovosAE');
-});
-
+Route::post('/detalhes-ce', [AnimalController::class, 'detalhesCE'])
+    ->name('detalhes.ce');
 
 
-Route::get('/cr', function () {
-    return view('site.casosResolvidos');
-});
-Route::get('/ca', function () {
-    return view('site.casosAbandonados');
-});
-Route::get('/ce', function () {
-    return view('site.casosEditados');
-});
+// =======================================================
+// AÇÕES SOBRE ANIMAIS — SEMPRE POST
+// =======================================================
+Route::post('/aceitar-caso',   [AnimalController::class, 'aceitar'])->name('animal.aceitar');
+Route::post('/recusar-caso',   [AnimalController::class, 'recusar'])->name('animal.recusar');
+Route::post('/resolver-caso',  [AnimalController::class, 'resolver'])->name('animal.resolver');
+Route::post('/inativar-caso',  [AnimalController::class, 'inativar'])->name('animal.inativar');
+Route::post('/reativar-caso',  [AnimalController::class, 'reativar'])->name('animal.reativar');
 
 
-Route::get('/usuarios', [UsuarioController::class, 'listar'])->name('usuarios.listar');
+// ===============================
+// ROTAS DE USUÁRIOS
+// ===============================
+Route::get('/usuarios', [UsuarioController::class, 'listar'])
+    ->name('usuarios.listar');
 
-// Rota para listar animais encontrados e ativos
-Route::get('/n-animais-encontrados', [AnimalController::class, 'listarNEncontrados'])->name('site.listaNEncontrados');
 
-// Altere esta rota para POST e remova o {id} da URL
-Route::post('/dn-animais-encontrados', [AnimalController::class, 'DNEncontrados'])->name('site.DNEncontrados');
-
-Route::get('/n-animais-perdidos', [AnimalController::class, 'listarNPerdidos'])->name('site.listaNPerdidos');
-
-Route::post('/dn-animais-perdidos', [AnimalController::class, 'DNPerdidos'])->name('site.DNPerdidos');
-
-Route::get('/todos-animais', [AnimalController::class, 'todosAnimais'])->name('todos.animais');
-Route::post('/detalhes-do-animal', [AnimalController::class, 'DetalheAnimal'])->name('site.detalheAnimal');
-
-Route::get('/animais-perdidos', [AnimalController::class, 'listarPerdidos'])->name('AnimaisPerdidos');
-Route::get('/animais-encontrados', [AnimalController::class, 'listarEncontrados'])->name('AnimaisEncontrados');
-Route::get('/casos-inativados', [AnimalController::class, 'listarInativados'])->name('CasosInativados');
-Route::get('/casos-resolvidos', [AnimalController::class, 'listarResolvidos'])->name('CasosResolvidos');
-
-// ações sobre o animal (POST para não expor id na URL)
-Route::post('/aceitar-caso', [AnimalController::class, 'aceitar'])->name('animal.aceitar');
-Route::post('/recusar-caso', [AnimalController::class, 'recusar'])->name('animal.recusar');
-Route::post('/resolver-caso', [AnimalController::class, 'resolver'])->name('animal.resolver');
-Route::post('/inativar-caso', [AnimalController::class, 'inativar'])->name('animal.inativar');
-Route::post('/reativar-caso', [AnimalController::class, 'reativar'])->name('animal.reativar');
+// ===============================
+// TESTES (não obrigatórios)
+// ===============================
+Route::get('/ap', fn() => view('site.AnimaisPerdidos'));
+Route::get('/ae', fn() => view('site.AnimaisEncontrados'));

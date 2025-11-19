@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -14,9 +14,9 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            UsuarioSeeder::class, // Adicione esta linha
-            AnimalSeeder::class,
-            EditadosSeeder::class,
+            UsuarioSeeder::class, // PRIMEIRO - cria usuarios
+            AnimalSeeder::class,  // SEGUNDO - cria animais
+            EditadosSeeder::class, // TERCEIRO - cria editados
         ]);
     }
 }

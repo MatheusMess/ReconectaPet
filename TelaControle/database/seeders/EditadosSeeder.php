@@ -13,35 +13,34 @@ class EditadosSeeder extends Seeder
      */
     public function run(): void
     {
-        // Limpa a tabela
         DB::table('editados')->truncate();
 
-        // tenta localizar alguns animais já existentes para referência
+        // Tenta localizar alguns animais já existentes para referência
         $spike = Animal::where('nome', 'Spike')->first();
         $qiqi  = Animal::where('nome', 'Qiqi')->first();
 
-        $spikeId = $spike ? $spike->id : 1;
-        $qiqiId  = $qiqi  ? $qiqi->id  : 1;
+        if (!$spike || !$qiqi) {
+            $this->command->error('Animais Spike ou Qiqi não encontrados! Execute AnimalSeeder primeiro.');
+            return;
+        }
 
         $editados = [
             // exemplo: edição proposta para Spike
             [
-                'id' => $spikeId,
-                // novos valores propostos (edição)
+                'id' => $spike->id,
+                // novos valores propostos (edição) - USANDO CAMPOS CORRETOS
                 'n_tipo' => 'Cachorro',
-                'n_situacao' => 'Perdido',
                 'n_nome' => 'Spikey',
                 'n_raca' => 'Labrador Retriever',
                 'n_cor' => 'Marrom escuro',
                 'n_sexo' => 'Macho',
                 'n_tam' => 'Grande',
+                'n_aparencia' => 'Pelo mais curto na região do focinho',
+                'n_lugar_visto' => 'Av. João Olímpio de Oliveira, Vila Asem',
                 'n_imagem1' => 'https://exemplo.com/imagens/spike_nova1.jpg',
                 'n_imagem2' => null,
                 'n_imagem3' => null,
                 'n_imagem4' => null,
-                'n_aparencia' => 'Pelo mais curto na região do focinho',
-                'n_lugar_visto' => 'Av. João Olímpio de Oliveira, Vila Asem',
-                'n_lugar_encontrado' => null,
 
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -49,22 +48,20 @@ class EditadosSeeder extends Seeder
 
             // exemplo: edição proposta para Qiqi
             [
-                'id' => $qiqiId,
-                // novos valores propostos
+                'id' => $qiqi->id,
+                // novos valores propostos - USANDO CAMPOS CORRETOS
                 'n_tipo' => 'Cachorro',
-                'n_situacao' => 'Perdido',
                 'n_nome' => 'Qiqi (proposto)',
                 'n_raca' => 'Pastor-Alemão Misturado',
                 'n_cor' => 'Cinza claro',
                 'n_sexo' => 'Fêmea',
                 'n_tam' => 'Grande',
+                'n_aparencia' => 'Olhos azuis mais destacados',
+                'n_lugar_visto' => 'Praça Dos Três Poderes - setor B',
                 'n_imagem1' => 'https://exemplo.com/imagens/qiqi_nova1.jpg',
                 'n_imagem2' => null,
                 'n_imagem3' => null,
                 'n_imagem4' => null,
-                'n_aparencia' => 'Olhos azuis mais destacados',
-                'n_lugar_visto' => 'Praça Dos Três Poderes - setor B',
-                'n_lugar_encontrado' => null,
 
                 'created_at' => now(),
                 'updated_at' => now(),

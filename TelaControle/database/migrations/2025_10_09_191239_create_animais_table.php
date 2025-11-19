@@ -6,35 +6,69 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
+    public function up()
     {
         Schema::create('animais', function (Blueprint $table) {
             $table->id();
-            // Chave estrangeira para a tabela 'users'
-            $table->foreignId('user_id')->constrained('usuarios')->onDelete('cascade');
-            $table->string('nome')->nullable()->default('(sem coleira)');
-            $table->enum('tipo', ['Gato', 'Cachorro', 'Outro'])->nullable();
-            $table->enum('situacao', ['Perdido', 'Encontrado'])->nullable();
+
+            // Usuário dono do anúncio
+            $table->foreignId('user_id')
+                ->constrained('usuarios')
+                ->onDelete('cascade');
+
+            // Dados básicos do animal
+            $table->string('nome')->nullable();
+            $table->string('especie');
             $table->string('raca')->nullable();
+            $table->string('sexo')->nullable();
+            $table->string('porte')->nullable();
+            $table->integer('idade')->nullable();
             $table->string('cor')->nullable();
-            $table->enum('tam', ['Pequeno', 'Medio', 'Grande'])->nullable();
-            $table->enum('sexo', ['Macho', 'Fêmea'])->nullable();
-            $table->text('aparencia')->nullable();
-            $table->text('lugar_visto')->nullable();
-            $table->text('lugar_encontrado')->nullable();
-            $table->string('imagem1')->nullable();
-            $table->string('imagem2')->nullable();
-            $table->string('imagem3')->nullable();
-            $table->string('imagem4')->nullable();
-            $table->enum('status', ['ativo', 'inativo', 'resolvido','pendente'])->default('pendente');
+
+            // Situação REAL do animal
+            // (perdido, encontrado, desaparecido, resgatado, adocao, adotado)
+            $table->enum('situacao', [
+                'perdido',
+                'encontrado',
+            ])->default('perdido');
+
+            // Descrição geral
+            $table->text('caracteristicas')->nullable();
+            $table->text('descricao')->nullable();
+
+            // Lista de imagens (para Flutter)
+            $table->json('imagens')->nullable();
+
+            // Campo legado (se quiser manter)
+            $table->string('foto')->nullable();
+
+            // Localização
+            $table->string('cidade')->nullable();
+            $table->string('bairro')->nullable();
+            $table->string('rua')->nullable();
+
+            // Dados específicos de animais perdidos
+            $table->string('ultimo_local_visto')->nullable();
+            $table->string('endereco_desaparecimento')->nullable();
+            $table->date('data_desaparecimento')->nullable();
+
+            // Status do REGISTRO no sistema - CORRIGIDO
+            // (não confundir com situacao do animal)
+            $table->enum('status', [
+                'ativo',
+                'inativo',      // ← CORRIGIDO: 'arquivado' → 'inativo'
+                'resolvido',
+                'pendente'
+            ])->default('ativo');
+
+            // Soft delete manual
+            $table->boolean('ativo')->default(true);
+
             $table->timestamps();
         });
     }
 
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('animais');
     }

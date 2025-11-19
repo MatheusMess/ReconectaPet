@@ -1,18 +1,16 @@
-
 @extends('site.layout')
-@section('title','Animais Encontrados')
+@section('title','Lista de Usuários') {{-- Corrigido o título --}}
 @section('conteudo')
     <div class="container mt-4">
-        <h2 class="mb-4" id="titulo">Animais Encontrados</h2>
+        <h2 class="mb-4" id="titulo">Usuários</h2> {{-- Corrigido o título --}}
         <div class="row">
-            {{-- Verifica se a coleção de animais não está vazia --}}
-            {{--@if($animais->count() > 0)--}}
+            @if($usuarios->count() > 0)
                 <x-lista :informacoes="$usuarios" :usuario="true" />
-            {{--@else
+            @else
                 <div class="col">
-                    <p class="text-center">Nenhum animal encontrado no momento.</p>
+                    <p class="text-center">Nenhum usuário cadastrado.</p>
                 </div>
-            @endif--}}
+            @endif
         </div>
     </div>
 @endsection
