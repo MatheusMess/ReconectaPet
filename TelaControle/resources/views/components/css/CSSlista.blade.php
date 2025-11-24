@@ -33,6 +33,8 @@
             margin-left: 30px;
             margin-bottom: 20px;
         }
+
+
     }
     #btnsbutton{
         button{
@@ -60,5 +62,4 @@
         background:rgb(230, 38, 38);
         cursor: pointer;
     }
-
 </style>

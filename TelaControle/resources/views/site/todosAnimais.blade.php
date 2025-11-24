@@ -84,7 +84,7 @@
 </script>
 
 @if (View::exists('components.listagem'))
-    <x-listagem :animais="$animais" :info="1"/>
+    <x-listagem :animais="$animais" :usuario="false" :showActions="false"/>
 @else
     <div class="row container pai">
         @foreach($animais as $animal)

@@ -30,7 +30,52 @@ class _TelaDetalhesAnimalState extends State<TelaDetalhesAnimal> {
   }
 
   Widget _construirImagem(String caminhoImagem) {
-    if (caminhoImagem.startsWith('assets/')) {
+    print('🖼️ Carregando imagem: $caminhoImagem');
+
+    if (caminhoImagem.startsWith('http')) {
+      // ✅ IMAGENS DA INTERNET (Laravel)
+      return Image.network(
+        caminhoImagem,
+        width: double.infinity,
+        height: 250,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            color: Colors.grey[200],
+            height: 250,
+            child: Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
+                    : null,
+              ),
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          print('❌ Erro ao carregar imagem: $error');
+          return Container(
+            color: Colors.grey[200],
+            height: 250,
+            child: const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 50, color: Colors.red),
+                SizedBox(height: 8),
+                Text(
+                  'Erro ao carregar imagem',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.red),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    } else if (caminhoImagem.startsWith('assets/')) {
+      // ✅ IMAGENS LOCAIS (assets)
       return Image.asset(
         caminhoImagem,
         width: double.infinity,
@@ -40,11 +85,19 @@ class _TelaDetalhesAnimalState extends State<TelaDetalhesAnimal> {
           return Container(
             color: Colors.grey[200],
             height: 250,
-            child: const Icon(Icons.pets, size: 60, color: Colors.grey),
+            child: const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.pets, size: 60, color: Colors.grey),
+                SizedBox(height: 8),
+                Text('Imagem não encontrada'),
+              ],
+            ),
           );
         },
       );
     } else {
+      // ✅ ARQUIVOS LOCAIS (File)
       return Image.file(
         File(caminhoImagem),
         width: double.infinity,
@@ -54,7 +107,14 @@ class _TelaDetalhesAnimalState extends State<TelaDetalhesAnimal> {
           return Container(
             color: Colors.grey[200],
             height: 250,
-            child: const Icon(Icons.pets, size: 60, color: Colors.grey),
+            child: const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.pets, size: 60, color: Colors.grey),
+                SizedBox(height: 8),
+                Text('Arquivo não encontrado'),
+              ],
+            ),
           );
         },
       );
@@ -63,8 +123,19 @@ class _TelaDetalhesAnimalState extends State<TelaDetalhesAnimal> {
 
   @override
   Widget build(BuildContext context) {
+    // DEBUG - Verifique os dados recebidos
+    print('🎯 TELA DETALHES - Dados do animal:');
+    print('   Nome: ${widget.animal.nome}');
+    print('   Imagens: ${widget.animal.imagens}');
+    print('   Quantidade: ${widget.animal.imagens.length}');
+    print(
+      '   Primeira imagem: ${widget.animal.imagens.isNotEmpty ? widget.animal.imagens[0] : "VAZIO"}',
+    );
+
     final temMultiplasImagens = widget.animal.imagens.length > 1;
-    final imagemAtual = widget.animal.imagens[_indiceImagemAtual];
+    final imagemAtual = widget.animal.imagens.isNotEmpty
+        ? widget.animal.imagens[_indiceImagemAtual]
+        : 'assets/cachorro1.png'; // Fallback
     final corPrincipal = widget.animal.isPerdido
         ? Colors.blue[700]!
         : Colors.green[700]!;
@@ -124,6 +195,8 @@ class _TelaDetalhesAnimalState extends State<TelaDetalhesAnimal> {
                 ],
               ),
             ),
+
+            const SizedBox(height: 16),
 
             // Carrossel de imagens
             Stack(
@@ -221,7 +294,33 @@ class _TelaDetalhesAnimalState extends State<TelaDetalhesAnimal> {
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(6),
-                          child: _construirImagem(widget.animal.imagens[index]),
+                          child: Image.network(
+                            widget.animal.imagens[index],
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  value:
+                                      loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                      : null,
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey[200],
+                                child: const Icon(
+                                  Icons.error_outline,
+                                  size: 20,
+                                  color: Colors.red,
+                                ),
+                              );
+                            },
+                          ),
                         ),
                       ),
                     );
@@ -247,7 +346,8 @@ class _TelaDetalhesAnimalState extends State<TelaDetalhesAnimal> {
                     _infoRow(Icons.category, "Espécie", widget.animal.especie),
                     _infoRow(Icons.male, "Sexo", widget.animal.sexo),
                     if (widget.animal.isEncontrado &&
-                        widget.animal.situacaoSaude != null)
+                        widget.animal.situacaoSaude != null &&
+                        widget.animal.situacaoSaude!.isNotEmpty)
                       _infoRow(
                         Icons.medical_services,
                         "Situação de Saúde",
@@ -313,8 +413,9 @@ class _TelaDetalhesAnimalState extends State<TelaDetalhesAnimal> {
               ),
             ),
 
-            // CARD DE CONTATO (mantido apenas para exibir informações, sem botão)
-            if (widget.animal.telefoneContato.isNotEmpty) ...[
+            // CARD DE CONTATO
+            if (widget.animal.userTelefone != null &&
+                widget.animal.userTelefone!.isNotEmpty) ...[
               const SizedBox(height: 12),
               Card(
                 shape: RoundedRectangleBorder(
@@ -344,17 +445,18 @@ class _TelaDetalhesAnimalState extends State<TelaDetalhesAnimal> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        widget.animal.telefoneContato,
+                        widget.animal.userTelefone!,
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
                           color: Color.fromARGB(255, 56, 142, 60),
                         ),
                       ),
-                      if (widget.animal.nomeUsuario.isNotEmpty) ...[
+                      if (widget.animal.userNome != null &&
+                          widget.animal.userNome!.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Text(
-                          "Responsável: ${widget.animal.nomeUsuario}",
+                          "Responsável: ${widget.animal.userNome!}",
                           style: const TextStyle(
                             fontSize: 14,
                             color: Colors.grey,
@@ -369,7 +471,7 @@ class _TelaDetalhesAnimalState extends State<TelaDetalhesAnimal> {
 
             const SizedBox(height: 20),
 
-            // OBSERVAÇÕES (alterado de "Descrição" para "Observações")
+            // OBSERVAÇÕES
             const Text(
               "Observações",
               style: TextStyle(
@@ -387,7 +489,9 @@ class _TelaDetalhesAnimalState extends State<TelaDetalhesAnimal> {
                 border: Border.all(color: Colors.grey[300]!),
               ),
               child: Text(
-                widget.animal.descricao,
+                widget.animal.descricao.isNotEmpty
+                    ? widget.animal.descricao
+                    : 'Nenhuma observação fornecida',
                 style: const TextStyle(
                   fontSize: 16,
                   height: 1.4,
@@ -398,7 +502,7 @@ class _TelaDetalhesAnimalState extends State<TelaDetalhesAnimal> {
 
             const SizedBox(height: 30),
 
-            // Botão de voltar (substitui os botões removidos)
+            // Botão de voltar
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(

@@ -135,6 +135,32 @@
             margin-top: auto;
         }
 
+        /* ===== FONTE MENOR APENAS PARA PÁGINA DE USUÁRIOS ===== */
+        body.pagina-usuarios {
+            font-size: 13px;
+        }
+
+        body.pagina-usuarios .main-content {
+            font-size: 0.9rem;
+        }
+
+        body.pagina-usuarios .card {
+            font-size: 0.85rem;
+        }
+
+        body.pagina-usuarios .card-title {
+            font-size: 1rem;
+        }
+
+        body.pagina-usuarios .btn {
+            font-size: 0.8rem;
+            padding: 6px 12px;
+        }
+
+        body.pagina-usuarios h2#titulo {
+            font-size: 1.6rem;
+        }
+
         /* Responsividade */
         @media (max-width: 992px) {
             .nav {
@@ -155,6 +181,11 @@
             .nav-links a {
                 padding: 8px 16px;
                 font-size: 0.9rem;
+            }
+
+            /* Ajuste responsivo para usuários */
+            body.pagina-usuarios {
+                font-size: 12px;
             }
         }
 
@@ -187,6 +218,11 @@
             .main-content {
                 padding: 15px;
             }
+
+            /* Ajuste responsivo para usuários */
+            body.pagina-usuarios h2#titulo {
+                font-size: 1.4rem;
+            }
         }
 
         @media (max-width: 480px) {
@@ -215,6 +251,16 @@
 
             .main-content {
                 padding: 10px;
+            }
+
+            /* Ajuste responsivo para usuários */
+            body.pagina-usuarios {
+                font-size: 11px;
+            }
+
+            body.pagina-usuarios .btn {
+                font-size: 0.75rem;
+                padding: 5px 10px;
             }
         }
 
@@ -258,12 +304,133 @@
             outline: 3px solid #ffd700;
             outline-offset: 2px;
         }
+        <style>
+    /* ... (todo o CSS anterior que já existe) ... */
+
+    /* ===== CORREÇÃO PARA VAZAMENTO DOS CARDS ===== */
+    .card-fix {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        margin-bottom: 20px;
+    }
+
+    .card-fix .card-body {
+        padding: 20px;
+    }
+
+    .card-fix .card-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #245A7C;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #f0f0f0;
+        padding-bottom: 10px;
+    }
+
+    .card-fix .list-unstyled {
+        margin-bottom: 0;
+    }
+
+    .card-fix .list-unstyled li {
+        margin-bottom: 8px;
+        padding: 5px 0;
+        border-bottom: 1px solid #f8f9fa;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+
+    .card-fix .list-unstyled li:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .card-fix .img-container {
+        height: 200px;
+        overflow: hidden;
+        border-bottom: 2px solid #f8f9fa;
+    }
+
+    .card-fix .img-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+    }
+
+    .card-fix .btn-container {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+        flex-wrap: wrap;
+    }
+
+    .card-fix .btn-container .btn {
+        flex: 1;
+        min-width: 120px;
+        border: none;
+        border-radius: 25px;
+        padding: 8px 20px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .card-fix .btn-det {
+        background: linear-gradient(135deg, #245A7C 0%, #1a4059 100%);
+        color: white;
+    }
+
+    .card-fix .btn-ace {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+
+    .card-fix .btn-rej {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+    }
+
+    .card-fix .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Para página de usuários */
+    body.pagina-usuarios .card-fix {
+        font-size: 0.85rem;
+    }
+
+    body.pagina-usuarios .card-fix .card-title {
+        font-size: 1rem;
+    }
+
+    body.pagina-usuarios .card-fix .btn {
+        font-size: 0.8rem;
+        padding: 6px 16px;
+    }
+
+    /* Responsividade */
+    @media (max-width: 768px) {
+        .card-fix .btn-container {
+            flex-direction: column;
+        }
+        
+        .card-fix .btn-container .btn {
+            width: 100%;
+        }
+        
+        .card-fix .img-container {
+            height: 180px;
+        }
+    }
+</style>
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="@if(request()->is('usuarios')) pagina-usuarios @endif">
     <header>
         <nav class="nav">
             <div class="logo-container">

@@ -3,7 +3,8 @@
 namespace App\View\Components;
 
 use Illuminate\View\Component;
-use App\Models\Animal; // 1. Importe a classe Animal
+use App\Models\Animal;
+use App\Models\Editados;
 
 class Detalhes extends Component
 {
@@ -13,7 +14,7 @@ class Detalhes extends Component
      * @var \App\Models\Animal
      */
     public $animal;
-
+    public $editado;
     public $caso;
 
     /**
@@ -21,12 +22,14 @@ class Detalhes extends Component
      *
      * @param \App\Models\Animal $animal
      * @param int $caso
+     * @param \App\Models\Editados|null $editado
      * @return void
      */
-    public function __construct(Animal $animal, int $caso) // 2. Altere o tipo aqui
+    public function __construct(Animal $animal, int $caso, ?Editados $editado = null)
     {
         $this->animal = $animal;
         $this->caso = $caso;
+        $this->editado = $editado;
     }
 
     /**

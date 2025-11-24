@@ -53,34 +53,60 @@ class _TelaCodigoRecuperacaoState extends State<TelaCodigoRecuperacao> {
       _carregando = true;
     });
 
-    // Pequeno delay para simular verificação
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    final codigoValido = _authService.verificarCodigoRecuperacao(
-      widget.email,
-      codigo,
-    );
-
-    if (codigoValido) {
-      _mostrarSucesso('Código verificado!');
-      await Future.delayed(const Duration(seconds: 1));
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => TelaNovaSenha(email: widget.email),
-        ),
+    try {
+      // ✅ AGORA VERIFICA COM O BACKEND
+      final sucesso = await _authService.verificarCodigoRecuperacao(
+        widget.email,
+        codigo,
       );
-    } else {
-      _mostrarErro('Código inválido ou expirado');
-    }
 
+      if (sucesso) {
+        _mostrarSucesso('Código verificado!');
+        await Future.delayed(const Duration(seconds: 1));
+
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => TelaNovaSenha(email: widget.email),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      _mostrarErro(e.toString().replaceAll('Exception: ', ''));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _carregando = false;
+        });
+      }
+    }
+  }
+
+  void _reenviarCodigo() async {
     setState(() {
-      _carregando = false;
+      _carregando = true;
     });
+
+    try {
+      // ✅ Chama a API Laravel para reenviar o código
+      await _authService.solicitarRecuperacaoSenha(widget.email);
+      _mostrarSucesso('Código reenviado para ${widget.email}');
+    } catch (e) {
+      _mostrarErro('Erro ao reenviar código: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _carregando = false;
+        });
+      }
+    }
   }
 
   void _mostrarErro(String mensagem) {
+    if (!mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(mensagem),
@@ -91,6 +117,8 @@ class _TelaCodigoRecuperacaoState extends State<TelaCodigoRecuperacao> {
   }
 
   void _mostrarSucesso(String mensagem) {
+    if (!mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(mensagem),
@@ -116,7 +144,16 @@ class _TelaCodigoRecuperacaoState extends State<TelaCodigoRecuperacao> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const SizedBox(height: 40),
+                    // Botão voltar
+                    Align(
+                      alignment: Alignment.topLeft,
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
                     const Text(
                       "Verificar Código",
                       style: TextStyle(
@@ -192,7 +229,18 @@ class _TelaCodigoRecuperacaoState extends State<TelaCodigoRecuperacao> {
                       }),
                     ),
 
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 30),
+
+                    // Botão reenviar código
+                    TextButton(
+                      onPressed: _carregando ? null : _reenviarCodigo,
+                      child: Text(
+                        _carregando ? "Enviando..." : "Reenviar código",
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
 
                     _carregando
                         ? const CircularProgressIndicator()
@@ -221,21 +269,13 @@ class _TelaCodigoRecuperacaoState extends State<TelaCodigoRecuperacao> {
                           ),
 
                     const SizedBox(height: 20),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: const Text(
-                        "Voltar",
-                        style: TextStyle(color: Colors.white70),
-                      ),
-                    ),
                   ],
                 ),
               ),
             ),
           ),
 
+          // Cachorro na parte inferior
           Align(
             alignment: Alignment.bottomCenter,
             child: Image.asset(

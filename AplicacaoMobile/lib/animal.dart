@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'animal_api.dart';
 
 class Animal {
@@ -34,6 +35,10 @@ class Animal {
   final String? userEmail;
   final String tipo;
 
+  // Novos campos do Laravel
+  final String situacao;
+  final String status;
+
   Animal({
     String? id,
     required this.nome,
@@ -67,14 +72,165 @@ class Animal {
     this.contatoResponsavel,
   }) : id = id ?? DateTime.now().millisecondsSinceEpoch.toString(),
        dataCriacao = dataCriacao ?? DateTime.now(),
-       dataAtualizacao = dataAtualizacao ?? DateTime.now();
+       dataAtualizacao = dataAtualizacao ?? DateTime.now(),
+       situacao = tipo, // Compatibilidade com Laravel
+       status = 'pendente'; // Default do Laravel
 
-  // Getters
+  // ✅ FACTORY METHOD COMPATÍVEL COM ANIMAL_API
+  factory Animal.fromJson(Map<String, dynamic> json) {
+    print('🔄 ANIMAL.FROMJSON - Dados recebidos:');
+    print('   Todas as chaves: ${json.keys.toList()}');
+
+    // ✅ Dados do usuário (compatível com animal_api.dart)
+    String? userNome;
+    String? userTelefone;
+    String? userEmail;
+
+    // 1. Tenta campos diretos
+    userNome = json['user_nome']?.toString();
+    userTelefone = json['user_telefone']?.toString();
+    userEmail = json['user_email']?.toString();
+
+    // 2. Tenta do objeto user
+    if (json['user'] != null) {
+      print('   📍 Objeto user encontrado: ${json['user']}');
+
+      if (json['user'] is Map) {
+        final userMap = Map<String, dynamic>.from(json['user']);
+        userNome ??= userMap['nome']?.toString();
+        userTelefone ??=
+            userMap['telefone']?.toString() ?? userMap['tel']?.toString();
+        userEmail ??= userMap['email']?.toString();
+      }
+    }
+
+    // 3. Tenta campos alternativos
+    userNome ??= json['nome_usuario']?.toString();
+    userTelefone ??= json['telefone_usuario']?.toString();
+    userEmail ??= json['email_usuario']?.toString();
+
+    print('   ✅ Dados finais - Nome: "$userNome", Telefone: "$userTelefone"');
+
+    return Animal(
+      id: json['id']?.toString() ?? '',
+      nome: json['nome'] ?? 'Não identificado',
+      descricao: json['descricao'] ?? '',
+      raca: json['raca'] ?? '',
+      cor: json['cor'] ?? '',
+      especie: json['especie'] ?? '',
+      sexo: json['sexo'] ?? '',
+      imagens: _parseImagens(json),
+      cidade: json['cidade'] ?? '',
+      bairro: json['bairro'] ?? '',
+      donoId: json['user_id']?.toString() ?? '',
+
+      dataCriacao: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : DateTime.now(),
+      dataAtualizacao: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
+          : DateTime.now(),
+      ativo: json['ativo'] == true,
+
+      // ✅ Dados do usuário
+      userNome: userNome?.isNotEmpty == true ? userNome : null,
+      userTelefone: userTelefone?.isNotEmpty == true ? userTelefone : null,
+      userEmail: userEmail?.isNotEmpty == true ? userEmail : null,
+
+      // Tipo do animal (compatível com Laravel)
+      tipo: json['situacao'] ?? 'perdido',
+
+      // Campos para animais PERDIDOS
+      ultimoLocalVisto: json['ultimo_local_visto'],
+      enderecoDesaparecimento: json['endereco_desaparecimento'],
+      dataDesaparecimento: json['data_desaparecimento'],
+
+      // Campos para animais ENCONTRADOS
+      localEncontro: json['local_encontro'],
+      enderecoEncontro: json['endereco_encontro'],
+      dataEncontro: json['data_encontro'],
+      situacaoSaude: json['situacao_saude'],
+      contatoResponsavel: json['contato_responsavel'],
+    );
+  }
+
+  // ✅ MÉTODO PARA CONVERTER PARA JSON (compatível com animal_api.dart)
+  Map<String, dynamic> toJson() {
+    final map = {
+      'nome': nome,
+      'descricao': descricao,
+      'raca': raca,
+      'cor': cor,
+      'especie': especie,
+      'sexo': sexo,
+      'cidade': cidade,
+      'bairro': bairro,
+      'user_id': donoId,
+      'situacao': tipo,
+      'ativo': ativo,
+    };
+
+    // Campos específicos para animais PERDIDOS
+    if (isPerdido) {
+      map['ultimo_local_visto'] = ultimoLocalVisto ?? '';
+      map['endereco_desaparecimento'] = enderecoDesaparecimento ?? '';
+      map['data_desaparecimento'] = dataDesaparecimento ?? '';
+      map['status'] = 'pendente';
+    }
+
+    // Campos específicos para animais ENCONTRADOS
+    if (isEncontrado) {
+      map['local_encontro'] = localEncontro ?? '';
+      map['endereco_encontro'] = enderecoEncontro ?? '';
+      map['data_encontro'] = dataEncontro ?? '';
+      map['situacao_saude'] = situacaoSaude ?? 'Não avaliado';
+      map['contato_responsavel'] = contatoResponsavel ?? '';
+      map['status'] = 'pendente';
+    }
+
+    return map;
+  }
+
+  // ✅ MÉTODO PARA PARSER DE IMAGENS CORRIGIDO
+  static List<String> _parseImagens(Map<String, dynamic> json) {
+    final imagensData = json['imagens'];
+
+    if (imagensData == null) {
+      return ['assets/cachorro1.png'];
+    }
+
+    // Se já for uma lista
+    if (imagensData is List) {
+      return List<String>.from(imagensData.map((img) => img.toString()));
+    }
+
+    // Se for string, tenta decodificar JSON
+    if (imagensData is String) {
+      try {
+        // ✅ CORREÇÃO: json.decode só funciona com String, não com Map
+        final decoded = jsonDecode(imagensData);
+        if (decoded is List) {
+          return List<String>.from(decoded.map((img) => img.toString()));
+        }
+      } catch (e) {
+        print('❌ Erro ao decodificar JSON de imagens: $e');
+        // Se não for JSON válido, trata como string única
+        return [imagensData];
+      }
+    }
+
+    // Fallback
+    return ['assets/cachorro1.png'];
+  }
+
+  // ✅ GETTERS (compatíveis com telas existentes)
   String get imagemPrincipal =>
       imagens.isNotEmpty ? imagens[0] : "assets/cachorro1.png";
 
   bool get isPerdido => tipo == 'perdido';
   bool get isEncontrado => tipo == 'encontrado';
+  bool get isAtivo => status == 'ativo';
+  bool get isPendente => status == 'pendente';
 
   String get localizacaoDisplay {
     if (isPerdido) {
@@ -146,7 +302,7 @@ class Animal {
     return dataDisplay;
   }
 
-  // Métodos de cópia e conversão
+  // ✅ MÉTODOS DE CÓPIA
   Animal copyWith({
     String? id,
     String? nome,
@@ -217,11 +373,11 @@ class Animal {
 
   @override
   String toString() {
-    return 'Animal(id: $id, nome: $nome, tipo: $tipo, donoId: $donoId)';
+    return 'Animal(id: $id, nome: $nome, tipo: $tipo, donoId: $donoId, telefone: $userTelefone)';
   }
 }
 
-// Serviço para gerenciar animais usando API
+// ✅ SERVICO COMPATÍVEL
 class AnimalService {
   // Buscar todos os animais
   static Future<List<Animal>> buscarAnimais({
@@ -229,41 +385,76 @@ class AnimalService {
     String? cidade,
     String? donoId,
   }) async {
-    return await AnimalApiService.buscarAnimais(
-      tipo: tipo,
-      cidade: cidade,
-      donoId: donoId,
-    );
+    try {
+      return await AnimalApiService.buscarAnimais(
+        tipo: tipo,
+        cidade: cidade,
+        donoId: donoId,
+      );
+    } catch (e) {
+      print('❌ Erro no AnimalService.buscarAnimais: $e');
+      rethrow;
+    }
   }
 
   // Buscar animal por ID
   static Future<Animal?> buscarAnimalPorId(String id) async {
-    return await AnimalApiService.buscarAnimalPorId(id);
+    try {
+      return await AnimalApiService.buscarAnimalPorId(id);
+    } catch (e) {
+      print('❌ Erro no AnimalService.buscarAnimalPorId: $e');
+      rethrow;
+    }
   }
 
   // Cadastrar novo animal
   static Future<Animal> cadastrarAnimal(Animal animal) async {
-    return await AnimalApiService.cadastrarAnimal(animal);
+    try {
+      return await AnimalApiService.cadastrarAnimal(animal);
+    } catch (e) {
+      print('❌ Erro no AnimalService.cadastrarAnimal: $e');
+      rethrow;
+    }
   }
 
   // Atualizar animal
   static Future<Animal> atualizarAnimal(Animal animal) async {
-    return await AnimalApiService.atualizarAnimal(animal);
+    try {
+      return await AnimalApiService.atualizarAnimal(animal);
+    } catch (e) {
+      print('❌ Erro no AnimalService.atualizarAnimal: $e');
+      rethrow;
+    }
   }
 
   // Excluir animal
   static Future<bool> excluirAnimal(String id) async {
-    return await AnimalApiService.excluirAnimal(id);
+    try {
+      return await AnimalApiService.excluirAnimal(id);
+    } catch (e) {
+      print('❌ Erro no AnimalService.excluirAnimal: $e');
+      rethrow;
+    }
   }
 
   // Buscar animais do usuário
   static Future<List<Animal>> meusAnimais(String donoId) async {
-    return await AnimalApiService.meusAnimais(donoId);
+    try {
+      return await AnimalApiService.meusAnimais(donoId);
+    } catch (e) {
+      print('❌ Erro no AnimalService.meusAnimais: $e');
+      rethrow;
+    }
   }
 
   // Buscar animais por tipo
   static Future<List<Animal>> buscarAnimaisPorTipo(String tipo) async {
-    return await AnimalApiService.buscarAnimaisPorTipo(tipo);
+    try {
+      return await AnimalApiService.buscarAnimaisPorTipo(tipo);
+    } catch (e) {
+      print('❌ Erro no AnimalService.buscarAnimaisPorTipo: $e');
+      rethrow;
+    }
   }
 
   // Obter estatísticas
@@ -282,7 +473,7 @@ class AnimalService {
         'recentes': animais.where((a) => a.isRecente).length,
       };
     } catch (e) {
-      print('Erro ao obter estatísticas: $e');
+      print('❌ Erro ao obter estatísticas: $e');
       return {
         'total': 0,
         'perdidos': 0,
@@ -294,7 +485,7 @@ class AnimalService {
     }
   }
 
-  // Método vazio para compatibilidade (não faz nada com API)
+  // Método vazio para compatibilidade
   static Future<void> carregarDadosIniciais() async {
     // Não faz nada na versão com API
   }

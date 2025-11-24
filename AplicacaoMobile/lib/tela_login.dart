@@ -18,71 +18,84 @@ class _TelaLoginState extends State<TelaLogin> {
   bool _carregando = false;
   bool _senhaVisivel = false;
   bool _manterConectado = false;
-
-  // Chaves para SharedPreferences (agora públicas)
-  static const String chaveManterConectado = 'manter_conectado';
-  static const String chaveEmail = 'ultimo_email';
-  static const String chaveUsuarioLogado = 'usuario_logado';
+  bool _verificandoLoginAuto = true;
 
   @override
   void initState() {
     super.initState();
-    _carregarPreferencias();
-    _verificarLoginAutomatico();
+    _inicializarLogin();
   }
 
-  // Carrega as preferências salvas
+  // ✅ CORREÇÃO: Inicializa na ordem correta
+  void _inicializarLogin() async {
+    await _carregarPreferencias();
+    // ignore: await_only_futures
+    await _verificarLoginAutomatico();
+  }
+
+  // ✅ CORREÇÃO: Carrega as preferências salvas
   Future<void> _carregarPreferencias() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       setState(() {
-        _manterConectado = prefs.getBool(chaveManterConectado) ?? false;
-        final ultimoEmail = prefs.getString(chaveEmail);
+        _manterConectado = prefs.getBool('manter_conectado') ?? false;
+        final ultimoEmail = prefs.getString('ultimo_email');
         if (ultimoEmail != null) {
           _emailController.text = ultimoEmail;
         }
       });
+      print('📝 Preferências carregadas:');
+      print('   - Manter conectado: $_manterConectado');
+      print('   - Email: ${_emailController.text}');
     } catch (e) {
-      print('Erro ao carregar preferências: $e');
+      print('❌ Erro ao carregar preferências: $e');
     }
   }
 
-  // Verifica se tem usuário logado e vai direto para a tela principal
-  void _verificarLoginAutomatico() async {
+  // ✅ CORREÇÃO: Método completamente refeito
+  Future<void> _verificarLoginAutomatico() async {
     try {
+      print('🔍 Verificando login automático...');
+
       final prefs = await SharedPreferences.getInstance();
-      final usuarioLogado = prefs.getBool(chaveUsuarioLogado) ?? false;
-      final manterConectado = prefs.getBool(chaveManterConectado) ?? false;
+      final manterConectado = prefs.getBool('manter_conectado') ?? false;
+      final usuarioLogado = prefs.getBool('usuario_logado') ?? false;
 
-      if (usuarioLogado && manterConectado) {
-        // Aguarda um pouco para mostrar a tela de login
-        await Future.delayed(const Duration(milliseconds: 800));
+      print('   - Manter conectado: $manterConectado');
+      print('   - Usuário logado: $usuarioLogado');
 
-        // Navega direto para a tela principal
+      if (!manterConectado || !usuarioLogado) {
+        print('❌ Login automático não está ativo');
+        setState(() {
+          _verificandoLoginAuto = false;
+        });
+        return;
+      }
+
+      // Aguarda um pouco para mostrar a tela de login
+      await Future.delayed(const Duration(milliseconds: 1000));
+
+      print('🔄 Tentando carregar usuário salvo...');
+      final sucesso = await _authService.verificarLogin();
+
+      if (sucesso && _authService.usuarioLogado != null) {
+        print('✅ Login automático bem-sucedido!');
+        print('👤 Usuário: ${_authService.usuarioLogado!.nome}');
+
         if (mounted) {
           Navegacao.irParaTelaPrincipalAposLogin(context);
         }
+      } else {
+        print('❌ Login automático falhou - usuário não encontrado');
+        setState(() {
+          _verificandoLoginAuto = false;
+        });
       }
     } catch (e) {
-      print('Erro ao verificar login automático: $e');
-    }
-  }
-
-  // Salva as preferências do usuário
-  Future<void> _salvarPreferencias() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(chaveManterConectado, _manterConectado);
-
-      if (_manterConectado && _emailController.text.isNotEmpty) {
-        await prefs.setString(chaveEmail, _emailController.text);
-        await prefs.setBool(chaveUsuarioLogado, true);
-      } else if (!_manterConectado) {
-        await prefs.remove(chaveEmail);
-        await prefs.setBool(chaveUsuarioLogado, false);
-      }
-    } catch (e) {
-      print('Erro ao salvar preferências: $e');
+      print('❌ Erro ao verificar login automático: $e');
+      setState(() {
+        _verificandoLoginAuto = false;
+      });
     }
   }
 
@@ -97,14 +110,20 @@ class _TelaLoginState extends State<TelaLogin> {
     });
 
     try {
+      print('🔄 Tentando login manual...');
       final sucesso = await _authService.login(
         _emailController.text.trim(),
         _senhaController.text,
       );
 
       if (sucesso) {
-        // Salva as preferências antes de navegar
-        await _salvarPreferencias();
+        print('✅ Login manual bem-sucedido!');
+
+        // ✅ CORREÇÃO: Usa o método do AuthService para salvar preferências
+        await _authService.salvarPreferenciasLogin(
+          manterConectado: _manterConectado,
+          email: _emailController.text.trim(),
+        );
 
         _mostrarSucesso('Login realizado com sucesso!');
         await Future.delayed(const Duration(seconds: 1));
@@ -160,18 +179,6 @@ class _TelaLoginState extends State<TelaLogin> {
     Navegacao.irParaEsqueceuSenha(context);
   }
 
-  // Método para debug - verificar estado atual
-  // ignore: unused_element
-  void _verificarEstado() async {
-    final prefs = await SharedPreferences.getInstance();
-    print('=== ESTADO ATUAL ===');
-    print('Manter conectado: ${prefs.getBool(chaveManterConectado)}');
-    print('Último email: ${prefs.getString(chaveEmail)}');
-    print('Usuário logado: ${prefs.getBool(chaveUsuarioLogado)}');
-    print('Usuário no AuthService: ${_authService.usuarioLogado?.email}');
-    print('==================');
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -206,85 +213,103 @@ class _TelaLoginState extends State<TelaLogin> {
                     ),
                     const SizedBox(height: 80),
 
+                    // ✅ Mostra loading durante verificação automática
+                    if (_verificandoLoginAuto) ...[
+                      const Column(
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 16),
+                          Text(
+                            "Verificando login...",
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                          SizedBox(height: 80),
+                        ],
+                      ),
+                    ],
+
                     _campoTexto("E-mail", Icons.email, _emailController),
                     const SizedBox(height: 15),
                     _campoSenha("Senha", Icons.lock, _senhaController),
                     const SizedBox(height: 10),
 
                     // Checkbox "Manter conectado"
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: _manterConectado,
-                          onChanged: (value) {
-                            setState(() {
-                              _manterConectado = value ?? false;
-                            });
-                          },
-                          checkColor: Colors.white,
-                          fillColor: WidgetStateProperty.resolveWith<Color>((
-                            Set<WidgetState> states,
-                          ) {
-                            if (states.contains(WidgetState.selected)) {
-                              return Colors.cyan;
-                            }
-                            return Colors.white54;
-                          }),
-                        ),
-                        const Text(
-                          "Manter conectado",
-                          style: TextStyle(color: Colors.white70),
-                        ),
-                      ],
-                    ),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        TextButton(
-                          onPressed: _irParaCriarConta,
-                          child: const Text(
-                            "Criar conta",
+                    if (!_verificandoLoginAuto)
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: _manterConectado,
+                            onChanged: (value) {
+                              setState(() {
+                                _manterConectado = value ?? false;
+                              });
+                            },
+                            checkColor: Colors.white,
+                            fillColor: WidgetStateProperty.resolveWith<Color>((
+                              Set<WidgetState> states,
+                            ) {
+                              if (states.contains(WidgetState.selected)) {
+                                return Colors.cyan;
+                              }
+                              return Colors.white54;
+                            }),
+                          ),
+                          const Text(
+                            "Manter conectado",
                             style: TextStyle(color: Colors.white70),
                           ),
-                        ),
-                        TextButton(
-                          onPressed: _irParaEsqueceuSenha,
-                          child: const Text(
-                            "Esqueceu a senha?",
-                            style: TextStyle(color: Colors.white70),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
+                        ],
+                      ),
 
-                    _carregando
-                        ? const CircularProgressIndicator()
-                        : SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: _login,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.cyan,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
+                    if (!_verificandoLoginAuto) ...[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          TextButton(
+                            onPressed: _irParaCriarConta,
+                            child: const Text(
+                              "Criar conta",
+                              style: TextStyle(color: Colors.white70),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: _irParaEsqueceuSenha,
+                            child: const Text(
+                              "Esqueceu a senha?",
+                              style: TextStyle(color: Colors.white70),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+
+                      _carregando
+                          ? const CircularProgressIndicator()
+                          : SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: _login,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.cyan,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                  elevation: 2,
                                 ),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                ),
-                                elevation: 2,
-                              ),
-                              child: const Text(
-                                "Entrar",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                                child: const Text(
+                                  "Entrar",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
+                    ],
 
                     const SizedBox(height: 100),
                   ],
@@ -311,30 +336,36 @@ class _TelaLoginState extends State<TelaLogin> {
     IconData icone,
     TextEditingController controller,
   ) {
-    return TextFormField(
-      controller: controller,
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: Colors.white24,
-        labelText: label,
-        labelStyle: const TextStyle(color: Colors.white70),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+    return Opacity(
+      opacity: _verificandoLoginAuto ? 0.5 : 1.0,
+      child: IgnorePointer(
+        ignoring: _verificandoLoginAuto,
+        child: TextFormField(
+          controller: controller,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white24,
+            labelText: label,
+            labelStyle: const TextStyle(color: Colors.white70),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            prefixIcon: Icon(icone, color: Colors.white70),
+          ),
+          style: const TextStyle(color: Colors.white),
+          keyboardType: TextInputType.emailAddress,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Email é obrigatório';
+            }
+            if (!value.contains('@') || !value.contains('.')) {
+              return 'Email inválido';
+            }
+            return null;
+          },
         ),
-        prefixIcon: Icon(icone, color: Colors.white70),
       ),
-      style: const TextStyle(color: Colors.white),
-      keyboardType: TextInputType.emailAddress,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Email é obrigatório';
-        }
-        if (!value.contains('@') || !value.contains('.')) {
-          return 'Email inválido';
-        }
-        return null;
-      },
     );
   }
 
@@ -343,41 +374,47 @@ class _TelaLoginState extends State<TelaLogin> {
     IconData icone,
     TextEditingController controller,
   ) {
-    return TextFormField(
-      controller: controller,
-      obscureText: !_senhaVisivel,
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: Colors.white24,
-        labelText: label,
-        labelStyle: const TextStyle(color: Colors.white70),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        prefixIcon: Icon(icone, color: Colors.white70),
-        suffixIcon: IconButton(
-          icon: Icon(
-            _senhaVisivel ? Icons.visibility : Icons.visibility_off,
-            color: Colors.white70,
+    return Opacity(
+      opacity: _verificandoLoginAuto ? 0.5 : 1.0,
+      child: IgnorePointer(
+        ignoring: _verificandoLoginAuto,
+        child: TextFormField(
+          controller: controller,
+          obscureText: !_senhaVisivel,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white24,
+            labelText: label,
+            labelStyle: const TextStyle(color: Colors.white70),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            prefixIcon: Icon(icone, color: Colors.white70),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _senhaVisivel ? Icons.visibility : Icons.visibility_off,
+                color: Colors.white70,
+              ),
+              onPressed: () {
+                setState(() {
+                  _senhaVisivel = !_senhaVisivel;
+                });
+              },
+            ),
           ),
-          onPressed: () {
-            setState(() {
-              _senhaVisivel = !_senhaVisivel;
-            });
+          style: const TextStyle(color: Colors.white),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Senha é obrigatória';
+            }
+            if (value.length < 6) {
+              return 'Senha deve ter pelo menos 6 caracteres';
+            }
+            return null;
           },
         ),
       ),
-      style: const TextStyle(color: Colors.white),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Senha é obrigatória';
-        }
-        if (value.length < 6) {
-          return 'Senha deve ter pelo menos 6 caracteres';
-        }
-        return null;
-      },
     );
   }
 

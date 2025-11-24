@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -12,6 +11,8 @@ class Usuario {
   final String? senha;
   final DateTime? dataCriacao;
   final String? apiToken;
+  final bool adm;
+  final bool banido;
 
   Usuario({
     String? id,
@@ -22,35 +23,102 @@ class Usuario {
     this.senha,
     this.dataCriacao,
     this.apiToken,
-  }) : id = id ?? DateTime.now().millisecondsSinceEpoch.toString();
+    this.adm = false,
+    this.banido = false,
+  }) : id = id ?? '';
 
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'nome': nome,
       'email': email,
       'tel': telefone,
       'cpf': cpf,
       'password': senha,
+      'token': apiToken,
+      'adm': adm,
+      'banido': banido,
+      'created_at': dataCriacao?.toIso8601String(),
     };
   }
 
+  Map<String, dynamic> toMapParaAtualizacao() {
+    return {'user_id': id, 'nome': nome, 'tel': telefone};
+  }
+
   factory Usuario.fromMap(Map<String, dynamic> map) {
-    return Usuario(
-      id: map['id']?.toString() ?? '',
-      nome: map['nome'] ?? '',
-      email: map['email'] ?? '',
-      telefone: map['tel'] ?? '',
-      cpf: map['cpf'] ?? '',
-      apiToken: map['token'],
-      dataCriacao: map['created_at'] != null
-          ? DateTime.parse(map['created_at'])
-          : null,
+    print('🔄 Convertendo Map para Usuario:');
+    print('   - Map recebido: $map');
+
+    // ✅ CORREÇÃO: Conversão segura dos campos
+    String safeString(dynamic value) {
+      if (value == null) return '';
+      if (value is String) return value;
+      if (value is num) return value.toString();
+      if (value is bool) return value.toString();
+      return value.toString();
+    }
+
+    bool safeBool(dynamic value) {
+      if (value == null) return false;
+      if (value is bool) return value;
+      if (value is num) return value == 1;
+      if (value is String) {
+        return value.toLowerCase() == 'true' || value == '1';
+      }
+      return false;
+    }
+
+    String? safeStringOrNull(dynamic value) {
+      if (value == null) return null;
+      if (value is String) return value.isEmpty ? null : value;
+      if (value is num) return value.toString();
+      return value.toString();
+    }
+
+    DateTime? safeDateTime(dynamic value) {
+      if (value == null) return null;
+      if (value is DateTime) return value;
+      if (value is String) {
+        try {
+          return DateTime.parse(value);
+        } catch (e) {
+          print('❌ Erro ao parsear data: $value');
+          return null;
+        }
+      }
+      return null;
+    }
+
+    final usuario = Usuario(
+      id: safeString(map['id']),
+      nome: safeString(map['nome']),
+      email: safeString(map['email']),
+      telefone: safeString(map['tel'] ?? map['telefone']),
+      cpf: safeString(map['cpf']),
+      senha: safeStringOrNull(map['password'] ?? map['senha']),
+      apiToken: safeStringOrNull(map['token'] ?? map['apiToken']),
+      adm: safeBool(map['adm']),
+      banido: safeBool(map['banido']),
+      dataCriacao: safeDateTime(map['created_at'] ?? map['dataCriacao']),
     );
+
+    print('✅ Usuario convertido: ${usuario.toString()}');
+    return usuario;
   }
 
   String toJson() => json.encode(toMap());
-  factory Usuario.fromJson(String source) =>
-      Usuario.fromMap(json.decode(source));
+
+  factory Usuario.fromJson(String source) {
+    try {
+      final Map<String, dynamic> map = json.decode(source);
+      return Usuario.fromMap(map);
+    } catch (e) {
+      print('❌ Erro ao decodificar JSON: $e');
+      print('❌ JSON problemático: $source');
+      rethrow;
+    }
+  }
 
   Usuario copyWith({
     String? id,
@@ -61,6 +129,8 @@ class Usuario {
     String? senha,
     String? apiToken,
     DateTime? dataCriacao,
+    bool? adm,
+    bool? banido,
   }) {
     return Usuario(
       id: id ?? this.id,
@@ -71,21 +141,14 @@ class Usuario {
       senha: senha ?? this.senha,
       apiToken: apiToken ?? this.apiToken,
       dataCriacao: dataCriacao ?? this.dataCriacao,
+      adm: adm ?? this.adm,
+      banido: banido ?? this.banido,
     );
   }
 
   @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is Usuario && other.id == id;
-  }
-
-  @override
-  int get hashCode => id.hashCode;
-
-  @override
   String toString() {
-    return 'Usuario(id: $id, nome: $nome, email: $email, telefone: $telefone)';
+    return 'Usuario(id: $id, nome: $nome, email: $email, telefone: $telefone, banido: $banido)';
   }
 }
 
@@ -95,86 +158,60 @@ class AuthService {
   AuthService._internal();
 
   static const String _storageKey = 'usuario_logado';
-  // ⚠️ ATUALIZE PARA SEU IP:
   static const String _baseUrl = 'http://192.168.15.16:8000';
   Usuario? _usuarioLogado;
 
-  final Map<String, String> _codigosRecuperacao = {};
-  final Map<String, DateTime> _codigosExpiracao = {};
-
   Usuario? get usuarioLogado => _usuarioLogado;
   String? get token => _usuarioLogado?.apiToken;
+  bool get usuarioEstaBanido => _usuarioLogado?.banido == true;
 
   // ========== MÉTODOS PRINCIPAIS ==========
-
-  Future<bool> testarConexaoAPI() async {
-    try {
-      print('🔍 TESTANDO CONEXÃO COM A API...');
-      final response = await http.get(
-        Uri.parse('$_baseUrl/api/animais'),
-        headers: _headers,
-      );
-
-      print('📡 Status da conexão: ${response.statusCode}');
-      return response.statusCode == 200;
-    } catch (e) {
-      print('❌ ERRO NA CONEXÃO: $e');
-      return false;
-    }
-  }
 
   Future<bool> cadastrarUsuario(Usuario novoUsuario) async {
     try {
       print('🔄 === INICIANDO CADASTRO ===');
       print('📧 Email: ${novoUsuario.email}');
-      print('🌐 URL: $_baseUrl/api/register');
+      print('📦 Dados: ${novoUsuario.toMap()}');
 
-      // Testar conexão primeiro
-      final conexaoOk = await testarConexaoAPI();
-      if (!conexaoOk) {
-        throw Exception(
-          'Não foi possível conectar com a API. Verifique o IP e se o servidor está rodando.',
-        );
-      }
+      final usuarioParaCadastro = novoUsuario.copyWith(banido: false);
 
-      print('📤 Enviando dados para cadastro...');
-      final response = await http.post(
-        Uri.parse('$_baseUrl/api/register'),
-        headers: _headers,
-        body: json.encode(novoUsuario.toMap()),
-      );
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/api/register'),
+            headers: _headers,
+            body: json.encode(usuarioParaCadastro.toMap()),
+          )
+          .timeout(const Duration(seconds: 15));
 
-      print('📡 STATUS CODE: ${response.statusCode}');
-      print('📦 RESPOSTA BRUTA: ${response.body}');
+      print('📡 STATUS: ${response.statusCode}');
+      print('📦 RESPOSTA: ${response.body}');
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
-        print('🔍 RESPOSTA DECODIFICADA: $data');
 
         if (data['success'] == true) {
-          final userData = data['user'];
+          final usuario = Usuario.fromMap(data['user']);
 
-          print('✅ Cadastro bem-sucedido!');
-          print('👤 User data: $userData');
+          if (usuario.banido) {
+            throw Exception(
+              'Erro: Usuário foi criado como banido. Contate o suporte.',
+            );
+          }
 
-          final usuario = Usuario.fromMap(userData);
           await _salvarUsuarioLogado(usuario);
+          print('✅ Cadastro bem-sucedido!');
           return true;
         } else {
           throw Exception(data['message'] ?? 'Erro no cadastro');
         }
       } else {
         final errorData = json.decode(response.body);
-        final errorMessage =
-            errorData['message'] ??
-            errorData['errors']?.toString() ??
-            'Erro HTTP ${response.statusCode}';
-        throw Exception(errorMessage);
+        throw Exception(_extrairMensagemErro(errorData));
       }
     } catch (e) {
-      print('❌ ERRO NO CADASTRO: $e');
-      print('🔄 Tentando cadastro local...');
-      return await _cadastrarUsuarioLocal(novoUsuario);
+      String mensagemErro = e.toString().replaceAll('Exception: ', '');
+      print('❌ ERRO NO CADASTRO: $mensagemErro');
+      rethrow;
     }
   }
 
@@ -182,95 +219,226 @@ class AuthService {
     try {
       print('🔄 === INICIANDO LOGIN ===');
       print('📧 Email: $email');
-      print('🌐 URL: $_baseUrl/api/login');
 
-      // Testar conexão primeiro
-      final conexaoOk = await testarConexaoAPI();
-      if (!conexaoOk) {
-        throw Exception(
-          'Não foi possível conectar com a API. Verifique o IP e se o servidor está rodando.',
-        );
-      }
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/api/login'),
+            headers: _headers,
+            body: json.encode({'email': email, 'password': senha}),
+          )
+          .timeout(const Duration(seconds: 15));
 
-      print('📤 Enviando dados para login...');
-      print(
-        '🔍 Dados enviados: ${json.encode({'email': email, 'password': senha})}',
-      );
-
-      final response = await http.post(
-        Uri.parse('$_baseUrl/api/login'),
-        headers: _headers,
-        body: json.encode({'email': email, 'password': senha}),
-      );
-
-      print('📡 STATUS CODE: ${response.statusCode}');
-      print('📦 RESPOSTA BRUTA: ${response.body}');
+      print('📡 STATUS: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
-        print('🔍 RESPOSTA DECODIFICADA: $data');
 
         if (data['success'] == true) {
-          final userData = data['user'];
+          final usuario = Usuario.fromMap(data['user']);
 
-          print('✅ Login bem-sucedido!');
-          print('👤 User data: $userData');
+          if (usuario.banido) {
+            await _limparUsuarioSalvo();
+            throw Exception(
+              '🚫 ACESSO BLOQUEADO\n\nSua conta foi banida do sistema. Entre em contato com o suporte para mais informações.',
+            );
+          }
 
-          final usuario = Usuario.fromMap(userData);
           await _salvarUsuarioLogado(usuario);
+          print('✅ Login bem-sucedido!');
+          print('👤 Status do usuário: ${usuario.banido ? "BANIDO" : "ATIVO"}');
           return true;
         } else {
           throw Exception(data['message'] ?? 'Login falhou');
         }
       } else {
         final errorData = json.decode(response.body);
-        final errorMessage =
-            errorData['message'] ?? 'Erro HTTP ${response.statusCode}';
-        throw Exception(errorMessage);
+        throw Exception(_extrairMensagemErro(errorData));
       }
     } catch (e) {
-      print('❌ ERRO NO LOGIN: $e');
-      print('🔄 Tentando login local...');
-      return await _loginLocal(email, senha);
+      String mensagemErro = e.toString().replaceAll('Exception: ', '');
+      print('❌ ERRO NO LOGIN: $mensagemErro');
+      rethrow;
     }
   }
 
   Future<void> logout() async {
     try {
-      print('🔄 Fazendo logout...');
-      await http.post(Uri.parse('$_baseUrl/api/logout'), headers: _headers);
-      print('✅ Logout realizado');
+      await http
+          .post(Uri.parse('$_baseUrl/api/logout'), headers: _headers)
+          .timeout(const Duration(seconds: 10));
     } catch (e) {
-      print('❌ Erro no logout: $e');
+      String mensagemErro = e.toString().replaceAll('Exception: ', '');
+      print('❌ Erro no logout: $mensagemErro');
     } finally {
       _usuarioLogado = null;
       await _limparUsuarioSalvo();
-      print('✅ Usuário deslogado localmente');
+      await _limparManterConectado();
     }
   }
 
+  // ✅ MÉTODO VERIFICARLOGIN CORRIGIDO
   Future<bool> verificarLogin() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final usuarioJson = prefs.getString(_storageKey);
 
-      if (usuarioJson != null) {
-        final usuario = Usuario.fromJson(usuarioJson);
-        print('🔍 Verificando usuário salvo: ${usuario.email}');
+      print('🔍 Verificando login salvo...');
+      print('   - Chave: $_storageKey');
+      print('   - Usuário JSON: $usuarioJson');
 
-        _usuarioLogado = usuario;
-        print('✅ Usuário logado: ${usuario.email}');
-        return true;
+      if (usuarioJson != null && usuarioJson.isNotEmpty) {
+        try {
+          // ✅ DEBUG: Ver estrutura do JSON
+          print('   - Tipo do JSON: ${usuarioJson.runtimeType}');
+          print(
+            '   - Primeiros 200 chars: ${usuarioJson.length > 200 ? usuarioJson.substring(0, 200) + "..." : usuarioJson}',
+          );
+
+          // ✅ CORREÇÃO: Parse seguro do JSON
+          final Map<String, dynamic> usuarioMap = json.decode(usuarioJson);
+          print('   - JSON decodificado tipo: ${usuarioMap.runtimeType}');
+          print('   - Keys do map: ${usuarioMap.keys}');
+
+          final usuario = Usuario.fromMap(usuarioMap);
+
+          // ✅ CORREÇÃO: Verificação mais robusta
+          if (usuario.id.isEmpty || usuario.email.isEmpty) {
+            print('⚠️ Usuário inválido - campos obrigatórios faltando');
+            print('   - ID: "${usuario.id}"');
+            print('   - Email: "${usuario.email}"');
+            await _limparUsuarioSalvo();
+            return false;
+          }
+
+          if (usuario.banido) {
+            print('⚠️ Usuário banido detectado no login salvo');
+            await _limparUsuarioSalvo();
+            return false;
+          }
+
+          _usuarioLogado = usuario;
+          print('✅ Usuário carregado com sucesso: ${usuario.nome}');
+          print('   - ID: ${usuario.id}');
+          print('   - Email: ${usuario.email}');
+          print('   - Banido: ${usuario.banido}');
+          return true;
+        } catch (e) {
+          print('❌ Erro ao decodificar usuário: $e');
+          print('❌ StackTrace: ${e.toString()}');
+          print('❌ JSON problemático: $usuarioJson');
+          await _limparUsuarioSalvo();
+          return false;
+        }
+      } else {
+        print('❌ Nenhum usuário salvo encontrado');
+        return false;
       }
-
-      print('🔍 Nenhum usuário logado encontrado');
-      return false;
     } catch (e) {
       print('❌ Erro ao verificar login: $e');
+      print('❌ StackTrace: ${e.toString()}');
+      return false;
+    }
+  }
+
+  // ✅ MÉTODO DE DEBUG: Verificar o que está salvo
+  Future<void> debugPreferencias() async {
+    try {
       final prefs = await SharedPreferences.getInstance();
-      final hasUser = prefs.containsKey(_storageKey);
-      print('🔍 Fallback local - usuário salvo: $hasUser');
-      return hasUser;
+      print('=== DEBUG PREFERÊNCIAS ===');
+      print('manter_conectado: ${prefs.getBool('manter_conectado')}');
+      print('usuario_logado: ${prefs.getBool('usuario_logado')}');
+      print('ultimo_email: ${prefs.getString('ultimo_email')}');
+
+      final usuarioJson = prefs.getString(_storageKey);
+      print('usuario_json: $usuarioJson');
+
+      if (usuarioJson != null) {
+        try {
+          final parsed = json.decode(usuarioJson);
+          print('usuario_parsed: $parsed');
+        } catch (e) {
+          print('❌ Erro ao parsear usuario_json: $e');
+        }
+      }
+      print('==========================');
+    } catch (e) {
+      print('❌ Erro no debug: $e');
+    }
+  }
+
+  // ✅ MÉTODO PARA LIMPAR DADOS CORROMPIDOS
+  Future<void> limparDadosCorrompidos() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_storageKey);
+      await prefs.setBool('manter_conectado', false);
+      await prefs.setBool('usuario_logado', false);
+      await prefs.remove('ultimo_email');
+      _usuarioLogado = null;
+      print('🗑️ Dados corrompidos limpos com sucesso');
+    } catch (e) {
+      print('❌ Erro ao limpar dados corrompidos: $e');
+    }
+  }
+
+  // ✅ NOVO MÉTODO: Verificar login automático com "manter conectado"
+  Future<bool> verificarLoginAutomatico() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final manterConectado = prefs.getBool('manter_conectado') ?? false;
+      final usuarioLogado = prefs.getBool('usuario_logado') ?? false;
+
+      print('🔍 Verificando login automático:');
+      print('   - Manter conectado: $manterConectado');
+      print('   - Usuário logado: $usuarioLogado');
+
+      if (manterConectado && usuarioLogado) {
+        final sucesso = await verificarLogin();
+        print('   - Usuário carregado: $sucesso');
+        return sucesso;
+      }
+
+      return false;
+    } catch (e) {
+      print('❌ Erro ao verificar login automático: $e');
+      return false;
+    }
+  }
+
+  // ✅ NOVO MÉTODO: Salvar preferências de "manter conectado"
+  Future<void> salvarPreferenciasLogin({
+    required bool manterConectado,
+    required String email,
+  }) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('manter_conectado', manterConectado);
+      await prefs.setBool('usuario_logado', manterConectado);
+
+      if (manterConectado) {
+        await prefs.setString('ultimo_email', email);
+      } else {
+        await prefs.remove('ultimo_email');
+      }
+
+      print('💾 Preferências salvas:');
+      print('   - Manter conectado: $manterConectado');
+      print('   - Email: $email');
+    } catch (e) {
+      print('❌ Erro ao salvar preferências: $e');
+    }
+  }
+
+  // ✅ NOVO MÉTODO: Limpar "manter conectado"
+  Future<void> _limparManterConectado() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('manter_conectado', false);
+      await prefs.setBool('usuario_logado', false);
+      await prefs.remove('ultimo_email');
+      print('🗑️ Preferências de login limpas');
+    } catch (e) {
+      print('❌ Erro ao limpar preferências: $e');
     }
   }
 
@@ -278,51 +446,114 @@ class AuthService {
 
   Future<bool> solicitarRecuperacaoSenha(String email) async {
     try {
-      print('🔄 Solicitando recuperação de senha...');
+      print('🔄 === SOLICITANDO RECUPERAÇÃO DE SENHA ===');
+      print('📧 Email: $email');
 
-      final response = await http.post(
-        Uri.parse('$_baseUrl/api/forgot-password'),
-        headers: _headers,
-        body: json.encode({'email': email}),
-      );
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/api/esqueceu_senha'),
+            headers: _headers,
+            body: json.encode({'email': email}),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      print('📡 STATUS: ${response.statusCode}');
+      print('📦 RESPOSTA: ${response.body}');
 
       if (response.statusCode == 200) {
-        print('✅ Link de recuperação enviado para: $email');
-        return true;
+        final Map<String, dynamic> data = json.decode(response.body);
+
+        if (data['success'] == true) {
+          print('✅ Solicitação de recuperação enviada com sucesso');
+          return true;
+        } else {
+          throw Exception(data['message'] ?? 'Erro ao solicitar recuperação');
+        }
       } else {
-        final error = json.decode(response.body);
-        throw Exception(error['message'] ?? 'Erro ao solicitar recuperação');
+        final errorData = json.decode(response.body);
+        throw Exception(_extrairMensagemErro(errorData));
       }
     } catch (e) {
-      print('❌ Erro ao solicitar recuperação: $e');
-      return await _solicitarRecuperacaoLocal(email);
+      String mensagemErro = e.toString().replaceAll('Exception: ', '');
+      print('❌ ERRO NA RECUPERAÇÃO DE SENHA: $mensagemErro');
+      rethrow;
+    }
+  }
+
+  Future<bool> verificarCodigoRecuperacao(String email, String codigo) async {
+    try {
+      print('🔄 === VERIFICANDO CÓDIGO DE RECUPERAÇÃO ===');
+      print('📧 Email: $email');
+      print('🔢 Código: $codigo');
+
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/api/verificar_codigo'),
+            headers: _headers,
+            body: json.encode({'email': email, 'codigo': codigo}),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      print('📡 STATUS: ${response.statusCode}');
+      print('📦 RESPOSTA: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+
+        if (data['success'] == true) {
+          print('✅ Código verificado com sucesso');
+          return true;
+        } else {
+          if (data['message'] != null) {
+            throw Exception(data['message']);
+          } else {
+            throw Exception('Código inválido ou expirado');
+          }
+        }
+      } else {
+        final errorData = json.decode(response.body);
+        throw Exception(_extrairMensagemErro(errorData));
+      }
+    } catch (e) {
+      String mensagemErro = e.toString().replaceAll('Exception: ', '');
+      print('❌ ERRO NA VERIFICAÇÃO DO CÓDIGO: $mensagemErro');
+      rethrow;
     }
   }
 
   Future<bool> redefinirSenha(String email, String novaSenha) async {
     try {
-      print('🔄 Redefinindo senha...');
+      print('🔄 === REDEFININDO SENHA ===');
+      print('📧 Email: $email');
 
-      final response = await http.post(
-        Uri.parse('$_baseUrl/api/reset-password'),
-        headers: _headers,
-        body: json.encode({
-          'email': email,
-          'password': novaSenha,
-          'password_confirmation': novaSenha,
-        }),
-      );
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/api/redefinir_senha'),
+            headers: _headers,
+            body: json.encode({'email': email, 'password': novaSenha}),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      print('📡 STATUS: ${response.statusCode}');
+      print('📦 RESPOSTA: ${response.body}');
 
       if (response.statusCode == 200) {
-        print('✅ Senha redefinida com sucesso para: $email');
-        return true;
+        final Map<String, dynamic> data = json.decode(response.body);
+
+        if (data['success'] == true) {
+          print('✅ Senha redefinida com sucesso');
+          return true;
+        } else {
+          throw Exception(data['message'] ?? 'Erro ao redefinir senha');
+        }
       } else {
-        final error = json.decode(response.body);
-        throw Exception(error['message'] ?? 'Erro ao redefinir senha');
+        final errorData = json.decode(response.body);
+        throw Exception(_extrairMensagemErro(errorData));
       }
     } catch (e) {
-      print('❌ Erro ao redefinir senha: $e');
-      return await _redefinirSenhaLocal(email, novaSenha);
+      String mensagemErro = e.toString().replaceAll('Exception: ', '');
+      print('❌ ERRO AO REDEFINIR SENHA: $mensagemErro');
+      rethrow;
     }
   }
 
@@ -331,304 +562,154 @@ class AuthService {
   Future<bool> atualizarPerfil(Usuario usuarioAtualizado) async {
     try {
       print('🔄 Atualizando perfil...');
+      print('👤 User ID: ${usuarioAtualizado.id}');
+      print('📦 Dados: ${usuarioAtualizado.toMapParaAtualizacao()}');
 
-      final response = await http.put(
-        Uri.parse('$_baseUrl/api/user/profile'),
-        headers: _headers,
-        body: json.encode(usuarioAtualizado.toMap()),
-      );
+      if (usuarioEstaBanido) {
+        throw Exception('🚫 Conta banida. Não é possível atualizar o perfil.');
+      }
+
+      final response = await http
+          .put(
+            Uri.parse('$_baseUrl/api/user/profile'),
+            headers: _headers,
+            body: json.encode(usuarioAtualizado.toMapParaAtualizacao()),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      print('📡 STATUS: ${response.statusCode}');
+      print('📦 RESPOSTA: ${response.body}');
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
-        final usuario = Usuario.fromMap(data['user'] ?? data);
 
-        await _salvarUsuarioLogado(usuario);
+        if (data['success'] == true) {
+          final usuario = Usuario.fromMap(data['user']);
 
-        print('✅ Perfil atualizado com sucesso');
-        return true;
+          if (usuario.banido) {
+            await _limparUsuarioSalvo();
+            throw Exception('🚫 Sua conta foi banida durante a atualização.');
+          }
+
+          await _salvarUsuarioLogado(usuario);
+          print('✅ Perfil atualizado com sucesso');
+          return true;
+        } else {
+          throw Exception(data['message'] ?? 'Erro ao atualizar perfil');
+        }
       } else {
-        final error = json.decode(response.body);
-        throw Exception(error['message'] ?? 'Erro ao atualizar perfil');
+        final errorData = json.decode(response.body);
+        throw Exception(_extrairMensagemErro(errorData));
       }
     } catch (e) {
-      print('❌ Erro ao atualizar perfil: $e');
-      return await _atualizarPerfilLocal(usuarioAtualizado);
+      String mensagemErro = e.toString().replaceAll('Exception: ', '');
+      print('❌ Erro ao atualizar perfil: $mensagemErro');
+      rethrow;
+    }
+  }
+
+  // ========== VERIFICAÇÃO DE BANIMENTO EM TEMPO REAL ==========
+
+  Future<bool> verificarStatusConta() async {
+    try {
+      if (_usuarioLogado == null) return false;
+
+      final response = await http
+          .get(
+            Uri.parse('$_baseUrl/api/user/${_usuarioLogado!.id}'),
+            headers: _headers,
+          )
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        final usuarioAtual = Usuario.fromMap(data['data'] ?? data);
+
+        if (usuarioAtual.banido && !_usuarioLogado!.banido) {
+          print('🚫 USUÁRIO BANIDO DURANTE SESSÃO');
+          await _limparUsuarioSalvo();
+          _usuarioLogado = null;
+          return false;
+        }
+
+        _usuarioLogado = usuarioAtual;
+        await _salvarUsuarioLogado(usuarioAtual);
+        return true;
+      }
+      return false;
+    } catch (e) {
+      String mensagemErro = e.toString().replaceAll('Exception: ', '');
+      print('❌ Erro ao verificar status: $mensagemErro');
+      return false;
     }
   }
 
   // ========== MÉTODOS AUXILIARES ==========
 
   Map<String, String> get _headers {
-    return {'Content-Type': 'application/json', 'Accept': 'application/json'};
+    final headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+
+    if (token != null) {
+      headers['Authorization'] = 'Bearer $token';
+    }
+
+    return headers;
+  }
+
+  String _extrairMensagemErro(Map<String, dynamic> errorData) {
+    if (errorData['message'] != null) {
+      String mensagem = errorData['message'].toString();
+      mensagem = mensagem.replaceAll('Exception: ', '');
+      return mensagem;
+    }
+
+    if (errorData['errors'] != null) {
+      final errors = errorData['errors'] as Map<String, dynamic>;
+      final firstError = errors.values.first;
+      if (firstError is List) {
+        String mensagem = firstError.first.toString();
+        mensagem = mensagem.replaceAll('Exception: ', '');
+        return mensagem;
+      }
+      String mensagem = firstError.toString();
+      mensagem = mensagem.replaceAll('Exception: ', '');
+      return mensagem;
+    }
+
+    return 'Erro desconhecido';
   }
 
   Future<void> _salvarUsuarioLogado(Usuario usuario) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_storageKey, usuario.toJson());
     _usuarioLogado = usuario;
-    print('💾 Usuário salvo localmente: ${usuario.email}');
   }
 
   Future<void> _limparUsuarioSalvo() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_storageKey);
-    await prefs.setBool('usuario_logado', false);
-    await prefs.setBool('manter_conectado', false);
-    await prefs.remove('ultimo_email');
-    print('🗑️  Dados do usuário removidos localmente');
+    _usuarioLogado = null;
   }
 
-  // ========== FALLBACKS LOCAIS ==========
+  // ========== TESTES ==========
 
-  Future<bool> _cadastrarUsuarioLocal(Usuario novoUsuario) async {
+  Future<void> testarConexao() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final usuariosJson = prefs.getStringList('usuarios_locais') ?? [];
-
-      // Verificar se email já existe
-      for (var usuarioJson in usuariosJson) {
-        final usuario = Usuario.fromJson(usuarioJson);
-        if (usuario.email.toLowerCase() == novoUsuario.email.toLowerCase()) {
-          throw Exception('Email já cadastrado');
-        }
-      }
-
-      // Adicionar novo usuário
-      usuariosJson.add(novoUsuario.toJson());
-      await prefs.setStringList('usuarios_locais', usuariosJson);
-      await _salvarUsuarioLogado(novoUsuario);
-
-      print('✅ Usuário cadastrado localmente: ${novoUsuario.email}');
-      return true;
+      final response = await http
+          .get(Uri.parse('$_baseUrl/api/animais'), headers: _headers)
+          .timeout(const Duration(seconds: 10));
+      print('🔗 Conexão API: ${response.statusCode == 200 ? "✅" : "❌"}');
     } catch (e) {
-      print('❌ Erro no cadastro local: $e');
-      rethrow;
-    }
-  }
-
-  Future<bool> _loginLocal(String email, String senha) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final usuariosJson = prefs.getStringList('usuarios_locais') ?? [];
-
-      for (var usuarioJson in usuariosJson) {
-        final usuario = Usuario.fromJson(usuarioJson);
-        if (usuario.email.toLowerCase() == email.toLowerCase() &&
-            usuario.senha == senha) {
-          await _salvarUsuarioLogado(usuario);
-          print('✅ Login local realizado: $email');
-          return true;
-        }
-      }
-
-      throw Exception('Credenciais inválidas');
-    } catch (e) {
-      print('❌ Erro no login local: $e');
-      rethrow;
-    }
-  }
-
-  Future<bool> _solicitarRecuperacaoLocal(String email) async {
-    final prefs = await SharedPreferences.getInstance();
-    final usuariosJson = prefs.getStringList('usuarios_locais') ?? [];
-
-    for (var usuarioJson in usuariosJson) {
-      final usuario = Usuario.fromJson(usuarioJson);
-      if (usuario.email.toLowerCase() == email.toLowerCase()) {
-        final codigo = _gerarCodigoRecuperacao();
-        _codigosRecuperacao[email] = codigo;
-        _codigosExpiracao[email] = DateTime.now().add(
-          const Duration(minutes: 15),
-        );
-
-        print('🔐 Código de recuperação para $email: $codigo');
-        return true;
-      }
-    }
-
-    throw Exception('Email não cadastrado');
-  }
-
-  Future<bool> _redefinirSenhaLocal(String email, String novaSenha) async {
-    final prefs = await SharedPreferences.getInstance();
-    final usuariosJson = prefs.getStringList('usuarios_locais') ?? [];
-
-    for (int i = 0; i < usuariosJson.length; i++) {
-      final usuario = Usuario.fromJson(usuariosJson[i]);
-      if (usuario.email.toLowerCase() == email.toLowerCase()) {
-        final usuarioAtualizado = usuario.copyWith(senha: novaSenha);
-        usuariosJson[i] = usuarioAtualizado.toJson();
-
-        await prefs.setStringList('usuarios_locais', usuariosJson);
-
-        if (_usuarioLogado?.email == email) {
-          await _salvarUsuarioLogado(usuarioAtualizado);
-        }
-
-        print('✅ Senha redefinida localmente para: $email');
-        return true;
-      }
-    }
-
-    throw Exception('Email não encontrado');
-  }
-
-  Future<bool> _atualizarPerfilLocal(Usuario usuarioAtualizado) async {
-    final prefs = await SharedPreferences.getInstance();
-    final usuariosJson = prefs.getStringList('usuarios_locais') ?? [];
-
-    for (int i = 0; i < usuariosJson.length; i++) {
-      final usuario = Usuario.fromJson(usuariosJson[i]);
-      if (usuario.id == usuarioAtualizado.id) {
-        usuariosJson[i] = usuarioAtualizado.toJson();
-        await prefs.setStringList('usuarios_locais', usuariosJson);
-        await _salvarUsuarioLogado(usuarioAtualizado);
-
-        print('✅ Perfil atualizado localmente: ${usuarioAtualizado.email}');
-        return true;
-      }
-    }
-
-    throw Exception('Usuário não encontrado');
-  }
-
-  String _gerarCodigoRecuperacao() {
-    final random = Random();
-    return (100000 + random.nextInt(900000)).toString();
-  }
-
-  bool verificarCodigoRecuperacao(String email, String codigo) {
-    final codigoArmazenado = _codigosRecuperacao[email];
-    final expiracao = _codigosExpiracao[email];
-
-    if (codigoArmazenado == null || expiracao == null) {
-      return false;
-    }
-
-    if (DateTime.now().isAfter(expiracao)) {
-      _codigosRecuperacao.remove(email);
-      _codigosExpiracao.remove(email);
-      return false;
-    }
-
-    return codigoArmazenado == codigo;
-  }
-
-  // ========== UTILITÁRIOS ==========
-
-  Future<bool> usuarioExiste(String email) async {
-    try {
-      print('🔍 Verificando se email existe: $email');
-
-      final response = await http.post(
-        Uri.parse('$_baseUrl/api/check-email'),
-        headers: _headers,
-        body: json.encode({'email': email}),
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final exists = data['exists'] ?? false;
-        print('📧 Email $email existe: $exists');
-        return exists;
-      }
-    } catch (e) {
-      print('❌ Erro ao verificar email: $e');
-    }
-
-    // Fallback local
-    final prefs = await SharedPreferences.getInstance();
-    final usuariosJson = prefs.getStringList('usuarios_locais') ?? [];
-    final exists = usuariosJson.any((usuarioJson) {
-      final usuario = Usuario.fromJson(usuarioJson);
-      return usuario.email.toLowerCase() == email.toLowerCase();
-    });
-
-    print('📧 Email $email existe (local): $exists');
-    return exists;
-  }
-
-  Future<Usuario?> buscarUsuarioPorId(String id) async {
-    if (_usuarioLogado?.id == id) return _usuarioLogado;
-
-    // Fallback local
-    final prefs = await SharedPreferences.getInstance();
-    final usuariosJson = prefs.getStringList('usuarios_locais') ?? [];
-    try {
-      return usuariosJson
-          .map((json) => Usuario.fromJson(json))
-          .firstWhere((usuario) => usuario.id == id);
-    } catch (e) {
-      return null;
+      String mensagemErro = e.toString().replaceAll('Exception: ', '');
+      print('❌ ERRO CONEXÃO: $mensagemErro');
     }
   }
 
   static Future<void> limparLoginSalvo() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('usuario_logado', false);
-    await prefs.setBool('manter_conectado', false);
-    await prefs.remove('ultimo_email');
-    await prefs.remove('usuarios_locais');
-    print('✅ Login salvo foi limpo');
-  }
-
-  // Método para debug do usuário atual
-  void debugUsuarioAtual() {
-    if (_usuarioLogado != null) {
-      print('=== USUÁRIO ATUAL ===');
-      print('ID: ${_usuarioLogado!.id}');
-      print('Nome: ${_usuarioLogado!.nome}');
-      print('Email: ${_usuarioLogado!.email}');
-      print('Telefone: ${_usuarioLogado!.telefone}');
-      print('==================');
-    } else {
-      print('=== NENHUM USUÁRIO LOGADO ===');
-    }
-  }
-
-  // Método para debug dos usuários locais
-  Future<void> debugUsuariosLocais() async {
-    final prefs = await SharedPreferences.getInstance();
-    final usuariosJson = prefs.getStringList('usuarios_locais') ?? [];
-    print('=== USUÁRIOS LOCAIS (${usuariosJson.length}) ===');
-    for (var usuarioJson in usuariosJson) {
-      final usuario = Usuario.fromJson(usuarioJson);
-      print(
-        'ID: ${usuario.id} | Nome: ${usuario.nome} | Email: ${usuario.email} | Senha: ${usuario.senha != null ? "***" : "null"}',
-      );
-    }
-    print('================================');
-  }
-
-  // Método para testar conexão completa
-  Future<void> testarConexaoCompleto() async {
-    print('🎯 === TESTE COMPLETO DE CONEXÃO ===');
-
-    // Teste 1: Conexão básica
-    try {
-      final url = Uri.parse('$_baseUrl');
-      print('1. 🔌 Testando conexão básica: $url');
-
-      final response = await http.get(url).timeout(Duration(seconds: 5));
-      print('   ✅ Resposta: ${response.statusCode}');
-    } catch (e) {
-      print('   ❌ Erro: $e');
-    }
-
-    // Teste 2: API endpoint
-    try {
-      final url = Uri.parse('$_baseUrl/api/animais');
-      print('2. 🔌 Testando API: $url');
-
-      final response = await http.get(url).timeout(Duration(seconds: 5));
-      print('   ✅ Resposta: ${response.statusCode}');
-      if (response.statusCode == 200) {
-        print('   📦 Conteúdo: ${response.body.length} caracteres');
-      }
-    } catch (e) {
-      print('   ❌ Erro: $e');
-    }
-
-    print('🎯 === FIM DO TESTE ===');
+    await prefs.remove(_storageKey);
   }
 }

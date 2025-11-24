@@ -33,7 +33,7 @@
         </div>
         <div class="opcao">
             <span class="icone-fundo">&#128393;</span> <!-- X -->
-            <a href="ce"><h1>Casos Editados</h1></a>
+            <a href="casos-editados"><h1>Casos Editados</h1></a>
         </div>
     </div>
 @endsection

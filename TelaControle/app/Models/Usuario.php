@@ -3,48 +3,33 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Model;
 
-class Usuario extends Authenticatable
+class Usuario extends Model
 {
-    use HasFactory, Notifiable;
+    use HasFactory;
 
     protected $table = 'usuarios';
 
     protected $fillable = [
         'nome',
         'email',
-        'tel', 
+        'tel',
         'cpf',
         'senha',
         'adm',
+        'banido' // ✅ ADICIONADO campo banido
     ];
 
     protected $hidden = [
         'senha',
-        'remember_token',
+        'remember_token'
     ];
 
-    /**
-     * Get the name of the password attribute for the user.
-     *
-     * @return string
-     */
-    public function getAuthPassword()
-    {
-        return $this->senha;
-    }
-
-    /**
-     * Get the column name for the "remember me" token.
-     *
-     * @return string
-     */
-    public function getRememberTokenName()
-    {
-        return 'remember_token';
-    }
+    protected $casts = [
+        'adm' => 'boolean',
+        'banido' => 'boolean' // ✅ CAST para boolean
+    ];
 
     /**
      * Relacionamento com animais
@@ -55,15 +40,39 @@ class Usuario extends Authenticatable
     }
 
     /**
-     * Scope para buscar usuário por email
+     * Scope para usuários não banidos
      */
-    public function scopePorEmail($query, $email)
+    public function scopeNaoBanidos($query)
     {
-        return $query->where('email', $email);
+        return $query->where('banido', false);
     }
 
     /**
-     * Verificar se usuário é administrador
+     * Scope para usuários banidos
+     */
+    public function scopeBanidos($query)
+    {
+        return $query->where('banido', true);
+    }
+
+    /**
+     * Scope para usuários ativos (não banidos)
+     */
+    public function scopeAtivos($query)
+    {
+        return $query->where('banido', false);
+    }
+
+    /**
+     * Verifica se o usuário está banido
+     */
+    public function isBanido()
+    {
+        return $this->banido === true;
+    }
+
+    /**
+     * Verifica se o usuário é administrador
      */
     public function isAdmin()
     {
@@ -71,15 +80,25 @@ class Usuario extends Authenticatable
     }
 
     /**
-     * Atributos que devem ser convertidos
+     * Banir usuário
      */
-    protected $casts = [
-        'adm' => 'boolean',
-        'email_verified_at' => 'datetime',
-    ];
+    public function banir()
+    {
+        $this->banido = true;
+        return $this->save();
+    }
 
     /**
-     * Mutator para o campo email - sempre salvar em minúsculo
+     * Desbanir usuário
+     */
+    public function desbanir()
+    {
+        $this->banido = false;
+        return $this->save();
+    }
+
+    /**
+     * Mutator para garantir que o email seja sempre lowercase
      */
     public function setEmailAttribute($value)
     {
@@ -87,7 +106,7 @@ class Usuario extends Authenticatable
     }
 
     /**
-     * Mutator para o campo CPF - remover formatação
+     * Mutator para formatar CPF (apenas números)
      */
     public function setCpfAttribute($value)
     {
@@ -95,15 +114,7 @@ class Usuario extends Authenticatable
     }
 
     /**
-     * Mutator para o campo telefone - remover formatação
-     */
-    public function setTelAttribute($value)
-    {
-        $this->attributes['tel'] = preg_replace('/[^0-9]/', '', $value);
-    }
-
-    /**
-     * Accessor para o campo CPF - formatar na exibição
+     * Accessor para formatar CPF com pontuação
      */
     public function getCpfFormatadoAttribute()
     {
@@ -115,49 +126,35 @@ class Usuario extends Authenticatable
     }
 
     /**
-     * Accessor para o campo telefone - formatar na exibição
+     * Accessor para telefone formatado
      */
     public function getTelefoneFormatadoAttribute()
     {
-        $tel = $this->tel;
-        if (strlen($tel) === 11) {
-            return '(' . substr($tel, 0, 2) . ') ' . substr($tel, 2, 5) . '-' . substr($tel, 7, 4);
-        } elseif (strlen($tel) === 10) {
-            return '(' . substr($tel, 0, 2) . ') ' . substr($tel, 2, 4) . '-' . substr($tel, 6, 4);
+        $telefone = $this->tel;
+        if (strlen($telefone) === 11) {
+            return '(' . substr($telefone, 0, 2) . ') ' . substr($telefone, 2, 5) . '-' . substr($telefone, 7, 4);
+        } elseif (strlen($telefone) === 10) {
+            return '(' . substr($telefone, 0, 2) . ') ' . substr($telefone, 2, 4) . '-' . substr($telefone, 6, 4);
         }
-        return $tel;
+        return $telefone;
     }
 
     /**
-     * Verificar se a senha está correta
+     * Accessor para tipo de usuário
      */
-    public function verificarSenha($password)
+    public function getTipoUsuarioAttribute()
     {
-        return Hash::check($password, $this->senha);
+        if ($this->banido) {
+            return 'Banido';
+        }
+        return $this->adm ? 'Administrador' : 'Usuário';
     }
 
     /**
-     * Buscar usuário por email
+     * Accessor para status do usuário
      */
-    public static function buscarPorEmail($email)
+    public function getStatusAttribute()
     {
-        return static::porEmail($email)->first();
-    }
-
-    /**
-     * Verificar se email já existe
-     */
-    public static function emailExiste($email)
-    {
-        return static::porEmail($email)->exists();
-    }
-
-    /**
-     * Verificar se CPF já existe
-     */
-    public static function cpfExiste($cpf)
-    {
-        $cpfLimpo = preg_replace('/[^0-9]/', '', $cpf);
-        return static::where('cpf', $cpfLimpo)->exists();
+        return $this->banido ? 'Banido' : 'Ativo';
     }
 }

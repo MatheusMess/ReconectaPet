@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('cpf')->nullable();
             $table->string('senha');
             $table->boolean('adm')->default(false);
+            $table->boolean('banido')->default(false); // ✅ ADICIONADO campo banido
             $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken();
             $table->timestamps();

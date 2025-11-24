@@ -16,53 +16,54 @@ return new class extends Migration
                 ->constrained('usuarios')
                 ->onDelete('cascade');
 
-            // Dados básicos do animal
-            $table->string('nome')->nullable();
-            $table->string('especie');
-            $table->string('raca')->nullable();
-            $table->string('sexo')->nullable();
-            $table->string('porte')->nullable();
-            $table->integer('idade')->nullable();
-            $table->string('cor')->nullable();
+            // Dados básicos do animal (COM TODOS OS CAMPOS)
+            $table->string('nome');
+            $table->string('especie'); // Cachorro, Gato
+            $table->string('raca');
+            $table->string('sexo'); // Macho, Fêmea
+            $table->string('porte')->nullable(); // ← DA SEGUNDA
+            $table->integer('idade')->nullable(); // ← DA SEGUNDA
+            $table->string('cor');
 
             // Situação REAL do animal
-            // (perdido, encontrado, desaparecido, resgatado, adocao, adotado)
-            $table->enum('situacao', [
-                'perdido',
-                'encontrado',
-            ])->default('perdido');
+            $table->enum('situacao', ['perdido', 'encontrado'])->default('perdido');
 
-            // Descrição geral
-            $table->text('caracteristicas')->nullable();
+            // Descrição geral (COMBINANDO AMBOS)
+            $table->text('caracteristicas')->nullable(); // ← DA SEGUNDA
             $table->text('descricao')->nullable();
 
-            // Lista de imagens (para Flutter)
-            $table->json('imagens')->nullable();
+            // Imagens
+            $table->json('imagens')->nullable(); // Array de imagens em JSON
+            $table->string('foto')->nullable(); // ← Campo legado da segunda
 
-            // Campo legado (se quiser manter)
-            $table->string('foto')->nullable();
+            // Localização (COMPLETA)
+            $table->string('cidade');
+            $table->string('bairro');
+            $table->string('rua')->nullable(); // ← DA SEGUNDA
 
-            // Localização
-            $table->string('cidade')->nullable();
-            $table->string('bairro')->nullable();
-            $table->string('rua')->nullable();
-
-            // Dados específicos de animais perdidos
+            // Dados específicos de animais perdidos (DA PRIMEIRA + SEGUNDA)
             $table->string('ultimo_local_visto')->nullable();
             $table->string('endereco_desaparecimento')->nullable();
-            $table->date('data_desaparecimento')->nullable();
+            $table->date('data_desaparecimento')->nullable(); // ← CORRIGIDO: date em vez de string
 
-            // Status do REGISTRO no sistema - CORRIGIDO
-            // (não confundir com situacao do animal)
+            // Dados específicos de animais encontrados (DA PRIMEIRA)
+            $table->string('local_encontro')->nullable();
+            $table->string('endereco_encontro')->nullable();
+            $table->date('data_encontro')->nullable(); // ← CORRIGIDO: date em vez de string
+            $table->string('situacao_saude')->nullable();
+            $table->string('contato_responsavel')->nullable();
+
+            // Status do REGISTRO no sistema
             $table->enum('status', [
                 'ativo',
-                'inativo',      // ← CORRIGIDO: 'arquivado' → 'inativo'
+                'inativo',
                 'resolvido',
-                'pendente'
-            ])->default('ativo');
+                'pendente',
+                'recusado'
+            ])->default('pendente'); // ← Mantive 'pendente' da primeira como padrão
 
             // Soft delete manual
-            $table->boolean('ativo')->default(true);
+            $table->boolean('ativo')->default(true); // ← DA SEGUNDA
 
             $table->timestamps();
         });

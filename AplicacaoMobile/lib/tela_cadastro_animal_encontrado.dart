@@ -36,6 +36,7 @@ class _TelaCadastroAnimalEncontradoState
   final ImagePicker picker = ImagePicker();
 
   bool _salvando = false;
+  bool _bloquearBotao = false; // ✅ NOVO: Previne duplo clique
 
   Future<void> adicionarFoto({bool isPrincipal = false}) async {
     final XFile? pickedFile = await picker.pickImage(
@@ -50,10 +51,8 @@ class _TelaCadastroAnimalEncontradoState
         if (isPrincipal) {
           fotoPrincipal = pickedFile;
         } else if (fotosExtras.length < 3) {
-          // ✅ MÁXIMO 3 EXTRAS
           fotosExtras.add(pickedFile);
         } else {
-          // Mostrar mensagem se tentar adicionar mais que 3 extras
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("Máximo de 3 fotos extras atingido"),
@@ -92,7 +91,33 @@ class _TelaCadastroAnimalEncontradoState
     });
   }
 
+  Future<void> _selecionarDataEncontro() async {
+    final DateTime? dataSelecionada = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+    );
+
+    if (dataSelecionada != null) {
+      final dataFormatada =
+          "${dataSelecionada.day.toString().padLeft(2, '0')}/"
+          "${dataSelecionada.month.toString().padLeft(2, '0')}/"
+          "${dataSelecionada.year}";
+
+      setState(() {
+        dataEncontroController.text = dataFormatada;
+      });
+    }
+  }
+
   Future<void> salvarAnimal() async {
+    // ✅ CORREÇÃO: Impede duplo clique
+    if (_salvando || _bloquearBotao) {
+      print('⏳ Cadastro já em andamento, ignorando clique...');
+      return;
+    }
+
     // Validar campos obrigatórios
     if (racaController.text.isEmpty ||
         cores.isEmpty ||
@@ -106,16 +131,31 @@ class _TelaCadastroAnimalEncontradoState
         dataEncontroController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Preencha todos os campos obrigatórios"),
+          content: Text("Preencha todos os campos obrigatórios (*)"),
           backgroundColor: Colors.red,
         ),
       );
       return;
     }
 
+    // Validar foto principal
+    if (fotoPrincipal == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Adicione pelo menos uma foto principal"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // ✅ BLOQUEIA BOTÃO IMEDIATAMENTE
     setState(() {
       _salvando = true;
+      _bloquearBotao = true;
     });
+
+    print('🔄 INICIANDO CADASTRO...');
 
     try {
       // Obter usuário logado
@@ -124,21 +164,29 @@ class _TelaCadastroAnimalEncontradoState
         throw Exception('Usuário não está logado');
       }
 
-      // Coletar todas as imagens (principal + extras)
-      final List<String> todasImagens = [];
+      // Preparar imagens para upload - ✅ CORREÇÃO: Verifica se arquivos existem
+      final List<File> imagensParaUpload = [];
       if (fotoPrincipal != null) {
-        todasImagens.add(fotoPrincipal!.path);
+        final file = File(fotoPrincipal!.path);
+        if (await file.exists()) {
+          imagensParaUpload.add(file);
+          print('📸 Foto principal: ${file.path}');
+        } else {
+          throw Exception('Arquivo da foto principal não encontrado');
+        }
       }
+
       for (var foto in fotosExtras) {
-        todasImagens.add(foto.path);
+        final file = File(foto.path);
+        if (await file.exists()) {
+          imagensParaUpload.add(file);
+          print('📸 Foto extra: ${file.path}');
+        }
       }
 
-      // Se não tiver nenhuma foto, usar a padrão
-      if (todasImagens.isEmpty) {
-        todasImagens.add("assets/cachorro1.png");
-      }
+      print('📦 Total de imagens para upload: ${imagensParaUpload.length}');
 
-      // Criar animal com status PENDENTE para aprovação do admin
+      // Criar animal com status PENDENTE para aprovação
       final animal = Animal(
         nome: nomeController.text.isNotEmpty
             ? nomeController.text
@@ -148,7 +196,7 @@ class _TelaCadastroAnimalEncontradoState
         cor: cores.join(", "),
         especie: especieSelecionada!,
         sexo: sexoSelecionado!,
-        imagens: todasImagens,
+        imagens: [], // Será preenchido pela API após upload
         cidade: cidadeController.text,
         bairro: bairroController.text,
         donoId: usuarioLogado.id,
@@ -156,50 +204,86 @@ class _TelaCadastroAnimalEncontradoState
         localEncontro: localEncontroController.text,
         enderecoEncontro: enderecoController.text,
         dataEncontro: dataEncontroController.text,
-        situacaoSaude: situacaoSaude,
-        // Identificar como animal encontrado e PENDENTE
+        situacaoSaude: situacaoSaude ?? "Não avaliado",
+        // Identificar como animal encontrado
         tipo: 'encontrado',
-        ativo: false, // Inicialmente inativo até aprovação
+        ativo: false, // Inativo até ser aprovado
         // Campos de usuário para exibição
         userNome: usuarioLogado.nome,
         userTelefone: usuarioLogado.telefone,
         userEmail: usuarioLogado.email,
       );
 
-      // Enviar para API Laravel (status pendente)
-      final animalSalvo = await AnimalApiService.cadastrarAnimal(animal);
+      print('🚀 ENVIANDO PARA API...');
+
+      // ✅ ENVIAR PARA API LARAVEL COM STATUS PENDENTE
+      final animalSalvo = await AnimalApiService.cadastrarAnimalEncontrado(
+        animal: animal,
+        imagens: imagensParaUpload,
+      );
+
+      print('✅ ANIMAL CADASTRADO COM SUCESSO! ID: ${animalSalvo.id}');
 
       // Mostrar mensagem de sucesso
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Animal enviado para aprovação!'),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '✅ Animal enviado para aprovação!',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 4),
+              Text('Aguarde a análise do administrador.'),
+            ],
+          ),
           backgroundColor: Colors.green[700],
-          duration: const Duration(seconds: 3),
+          duration: const Duration(seconds: 5),
+          behavior: SnackBarBehavior.floating,
         ),
       );
 
       // Chamar callback se existir
       widget.onSalvar?.call(animalSalvo);
 
-      // Voltar para tela anterior
+      // Voltar para tela anterior após 2 segundos
+      await Future.delayed(const Duration(seconds: 2));
+
       if (mounted) {
         Navigator.pop(context);
       }
     } catch (e) {
-      print('❌ Erro ao salvar animal: $e');
+      print('❌ ERRO NO CADASTRO: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erro ao enviar animal: $e'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                '❌ Erro ao enviar animal',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              Text(e.toString().replaceAll('Exception: ', '')),
+            ],
+          ),
           backgroundColor: Colors.red,
-          duration: const Duration(seconds: 3),
+          duration: const Duration(seconds: 5),
+          behavior: SnackBarBehavior.floating,
         ),
       );
     } finally {
+      // ✅ LIBERA BOTÃO APÓS CONCLUSÃO (sucesso ou erro)
       if (mounted) {
         setState(() {
           _salvando = false;
+          _bloquearBotao = false;
         });
       }
+      print('🏁 PROCESSO FINALIZADO - Botão liberado');
     }
   }
 
@@ -214,6 +298,20 @@ class _TelaCadastroAnimalEncontradoState
         backgroundColor: Colors.green[700],
         elevation: 2,
         iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          if (_salvando)
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+            ),
+        ],
       ),
       body: Stack(
         children: [
@@ -261,7 +359,7 @@ class _TelaCadastroAnimalEncontradoState
                 _buildDropdown(
                   value: especieSelecionada,
                   hint: "Espécie *",
-                  items: ["Cachorro", "Gato"],
+                  items: const ["Cachorro", "Gato"],
                   onChanged: (value) =>
                       setState(() => especieSelecionada = value),
                 ),
@@ -279,7 +377,7 @@ class _TelaCadastroAnimalEncontradoState
                 _buildDropdown(
                   value: sexoSelecionado,
                   hint: "Sexo *",
-                  items: ["Macho", "Fêmea"],
+                  items: const ["Macho", "Fêmea"],
                   onChanged: (value) => setState(() => sexoSelecionado = value),
                 ),
                 const SizedBox(height: 16),
@@ -288,7 +386,7 @@ class _TelaCadastroAnimalEncontradoState
                 _buildDropdown(
                   value: situacaoSaude,
                   hint: "Situação de saúde",
-                  items: [
+                  items: const [
                     "Saudável",
                     "Machucado",
                     "Doente",
@@ -336,11 +434,7 @@ class _TelaCadastroAnimalEncontradoState
                 const SizedBox(height: 16),
 
                 // Data do encontro
-                _buildTextField(
-                  controller: dataEncontroController,
-                  label: "Data do encontro *",
-                  hint: "Ex: 12/08/2025",
-                ),
+                _buildDateField(),
                 const SizedBox(height: 20),
 
                 // OBSERVAÇÕES
@@ -351,6 +445,7 @@ class _TelaCadastroAnimalEncontradoState
 
                 // BOTÃO SALVAR
                 _buildSaveButton(),
+                const SizedBox(height: 20),
               ],
             ),
           ),
@@ -360,8 +455,23 @@ class _TelaCadastroAnimalEncontradoState
             Container(
               color: Colors.black54,
               child: const Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      "Enviando para aprovação...",
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      "Não feche o aplicativo",
+                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -384,9 +494,23 @@ class _TelaCadastroAnimalEncontradoState
           Icon(Icons.info_outline, color: Colors.blue[700], size: 20),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(
-              "Seu animal será enviado para aprovação antes de aparecer publicamente.",
-              style: TextStyle(color: Colors.blue[800], fontSize: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Aguardando Aprovação",
+                  style: TextStyle(
+                    color: Colors.blue[800],
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "Seu animal será analisado por um administrador antes de aparecer publicamente na seção de animais encontrados.",
+                  style: TextStyle(color: Colors.blue[800], fontSize: 12),
+                ),
+              ],
             ),
           ),
         ],
@@ -461,6 +585,10 @@ class _TelaCadastroAnimalEncontradoState
                         "Adicionar foto principal",
                         style: TextStyle(color: Colors.grey[600], fontSize: 14),
                       ),
+                      Text(
+                        "(Obrigatório)",
+                        style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                      ),
                     ],
                   ),
                 ),
@@ -532,7 +660,7 @@ class _TelaCadastroAnimalEncontradoState
                 ],
               );
             }),
-            if (fotosExtras.length < 3) // ✅ MÁXIMO 3 EXTRAS
+            if (fotosExtras.length < 3)
               GestureDetector(
                 onTap: () => adicionarFoto(isPrincipal: false),
                 child: Container(
@@ -567,7 +695,7 @@ class _TelaCadastroAnimalEncontradoState
         ),
         const SizedBox(height: 8),
         Text(
-          "Máximo de 3 fotos extras", // ✅ ATUALIZADO
+          "Máximo de 3 fotos extras (opcional)",
           style: TextStyle(
             color: Colors.grey[600],
             fontSize: 12,
@@ -609,22 +737,66 @@ class _TelaCadastroAnimalEncontradoState
               );
             }),
           ),
+        const SizedBox(height: 4),
+        Text(
+          "Pressione Enter ou clique no + para adicionar cada cor",
+          style: TextStyle(
+            color: Colors.grey[600],
+            fontSize: 11,
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDateField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: dataEncontroController,
+          readOnly: true,
+          decoration: InputDecoration(
+            labelText: "Data do encontro *",
+            hintText: "Clique para selecionar a data",
+            border: const OutlineInputBorder(),
+            suffixIcon: IconButton(
+              icon: const Icon(Icons.calendar_today),
+              onPressed: _selecionarDataEncontro,
+            ),
+          ),
+        ),
       ],
     );
   }
 
   Widget _buildObservacoesField() {
-    return TextField(
-      controller: observacoesController,
-      decoration: const InputDecoration(
-        labelText: "Observações importantes *",
-        hintText:
-            "Descreva características, estado de saúde, comportamento, onde está abrigado, etc.",
-        border: OutlineInputBorder(),
-        alignLabelWithHint: true,
-      ),
-      maxLines: 4,
-      textAlignVertical: TextAlignVertical.top,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: observacoesController,
+          decoration: const InputDecoration(
+            labelText: "Observações importantes *",
+            hintText:
+                "Descreva características, estado de saúde, comportamento, onde está abrigado, etc.",
+            border: OutlineInputBorder(),
+            alignLabelWithHint: true,
+          ),
+          maxLines: 4,
+          textAlignVertical: TextAlignVertical.top,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          "Essas informações ajudarão o dono original a identificar o animal",
+          style: TextStyle(
+            color: Colors.grey[600],
+            fontSize: 11,
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+      ],
     );
   }
 
@@ -655,51 +827,80 @@ class _TelaCadastroAnimalEncontradoState
     required List<String> items,
     required Function(String?) onChanged,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade400),
-        borderRadius: BorderRadius.circular(4),
+    return InputDecorator(
+      decoration: InputDecoration(
+        labelText: hint,
+        border: const OutlineInputBorder(),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       ),
-      child: DropdownButton<String>(
-        value: value,
-        hint: Text(hint),
-        isExpanded: true,
-        underline: const SizedBox(),
-        items: items
-            .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-            .toList(),
-        onChanged: onChanged,
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value,
+          isExpanded: true,
+          hint: Text(hint),
+          items: items
+              .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+              .toList(),
+          onChanged: onChanged,
+        ),
       ),
     );
   }
 
   Widget _buildSaveButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: _salvando ? null : salvarAnimal,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.green[700],
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          elevation: 2,
-        ),
-        child: _salvando
-            ? const SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
-            : const Text(
-                "ENVIAR PARA APROVAÇÃO",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+    return Column(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: (_salvando || _bloquearBotao) ? null : salvarAnimal,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: (_salvando || _bloquearBotao)
+                  ? Colors.grey
+                  : Colors.green[700],
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
               ),
-      ),
+              elevation: 2,
+            ),
+            child: _salvando
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : const Text(
+                    "ENVIAR PARA APROVAÇÃO",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          "* Todos os campos marcados com asterisco são obrigatórios",
+          style: TextStyle(color: Colors.grey[600], fontSize: 12),
+          textAlign: TextAlign.center,
+        ),
+      ],
     );
+  }
+
+  @override
+  void dispose() {
+    nomeController.dispose();
+    racaController.dispose();
+    corController.dispose();
+    observacoesController.dispose();
+    localEncontroController.dispose();
+    cidadeController.dispose();
+    bairroController.dispose();
+    enderecoController.dispose();
+    dataEncontroController.dispose();
+    super.dispose();
   }
 }

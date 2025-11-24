@@ -5,6 +5,7 @@ import 'navegacao.dart';
 import 'autenticacao.dart';
 import 'tela_cadastro_animal_encontrado.dart';
 import 'tela_editar_animal.dart';
+import 'gerenciador_filtros.dart';
 
 class TelaPrincipal extends StatefulWidget {
   const TelaPrincipal({super.key});
@@ -20,17 +21,8 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
   final AuthService _authService = AuthService();
   bool _carregando = true;
 
-  // Filtros
-  String _filtroTipo = 'Todos';
-  String _filtroEspecie = 'Todos';
-  String _filtroCidade = 'Todas';
-  String _filtroRaca = 'Todas';
-  String _filtroCor = 'Todas';
-
-  // Listas para os dropdowns
-  List<String> cidades = ['Todas'];
-  List<String> racas = ['Todas'];
-  List<String> cores = ['Todas'];
+  // ✅ GERENCIADOR DE FILTROS
+  final GerenciadorFiltros gerenciadorFiltros = GerenciadorFiltros();
 
   @override
   void initState() {
@@ -58,7 +50,11 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
           }
         }
 
-        _carregarFiltros();
+        // ✅ CARREGAR FILTROS
+        gerenciadorFiltros.carregarFiltros([
+          ...animaisPerdidos,
+          ...animaisEncontrados,
+        ]);
         _carregando = false;
       });
     } catch (e) {
@@ -72,37 +68,6 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
 
   void _atualizarTela() {
     _carregarAnimais();
-  }
-
-  void _carregarFiltros() {
-    final todosAnimais = [...animaisPerdidos, ...animaisEncontrados];
-
-    cidades = ['Todas'];
-    cidades.addAll(
-      todosAnimais
-          .map((animal) => animal.cidade)
-          .where((cidade) => cidade.isNotEmpty)
-          .toSet()
-          .toList(),
-    );
-
-    racas = ['Todas'];
-    racas.addAll(
-      todosAnimais
-          .map((animal) => animal.raca)
-          .where((raca) => raca.isNotEmpty)
-          .toSet()
-          .toList(),
-    );
-
-    cores = ['Todas'];
-    cores.addAll(
-      todosAnimais
-          .map((animal) => animal.cor)
-          .where((cor) => cor.isNotEmpty)
-          .toSet()
-          .toList(),
-    );
   }
 
   Future<void> adicionarAnimal(Animal animal) async {
@@ -135,310 +100,25 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
     }
   }
 
+  // ✅ MÉTODO SIMPLIFICADO - USA GERENCIADOR DE FILTROS
   List<Animal> _getAnimaisFiltrados() {
-    List<Animal> listaCompleta = [...animaisPerdidos, ...animaisEncontrados];
-
-    if (_filtroTipo != 'Todos') {
-      listaCompleta = listaCompleta.where((animal) {
-        return _filtroTipo == 'Perdidos'
-            ? animal.isPerdido
-            : animal.isEncontrado;
-      }).toList();
-    }
-
-    if (_filtroEspecie != 'Todos') {
-      listaCompleta = listaCompleta.where((animal) {
-        return animal.especie.toLowerCase() == _filtroEspecie.toLowerCase();
-      }).toList();
-    }
-
-    if (_filtroCidade != 'Todas') {
-      listaCompleta = listaCompleta.where((animal) {
-        return animal.cidade == _filtroCidade;
-      }).toList();
-    }
-
-    if (_filtroRaca != 'Todas') {
-      listaCompleta = listaCompleta.where((animal) {
-        return animal.raca == _filtroRaca;
-      }).toList();
-    }
-
-    if (_filtroCor != 'Todas') {
-      listaCompleta = listaCompleta.where((animal) {
-        return animal.cor == _filtroCor;
-      }).toList();
-    }
-
-    return listaCompleta;
+    final todosAnimais = [...animaisPerdidos, ...animaisEncontrados];
+    return gerenciadorFiltros.aplicarFiltros(todosAnimais);
   }
 
+  // ✅ MODAL DE FILTROS SIMPLIFICADO
   void _mostrarFiltros() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.8,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
-          ),
-        ),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.cyan[50],
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    "Filtrar Animais",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.cyan,
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      TextButton(
-                        onPressed: () {
-                          _limparFiltros();
-                          Navigator.pop(context);
-                        },
-                        child: const Text(
-                          "Limpar",
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildFiltroSection(
-                      "Tipo de Animal",
-                      _buildDropdownFiltro(
-                        value: _filtroTipo,
-                        items: const ['Todos', 'Perdidos', 'Encontrados'],
-                        onChanged: (value) {
-                          setState(() => _filtroTipo = value!);
-                        },
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    _buildFiltroSection(
-                      "Espécie",
-                      _buildDropdownFiltro(
-                        value: _filtroEspecie,
-                        items: const ['Todos', 'Cachorro', 'Gato'],
-                        onChanged: (value) {
-                          setState(() => _filtroEspecie = value!);
-                        },
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    _buildFiltroSection(
-                      "Cidade",
-                      _buildDropdownFiltro(
-                        value: _filtroCidade,
-                        items: cidades,
-                        onChanged: (value) {
-                          setState(() => _filtroCidade = value!);
-                        },
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    _buildFiltroSection(
-                      "Raça",
-                      _buildDropdownFiltro(
-                        value: _filtroRaca,
-                        items: racas,
-                        onChanged: (value) {
-                          setState(() => _filtroRaca = value!);
-                        },
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    _buildFiltroSection(
-                      "Cor",
-                      _buildDropdownFiltro(
-                        value: _filtroCor,
-                        items: cores,
-                        onChanged: (value) {
-                          setState(() => _filtroCor = value!);
-                        },
-                      ),
-                    ),
-
-                    const SizedBox(height: 30),
-
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[50],
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey),
-                      ),
-                      child: Column(
-                        children: [
-                          const Text(
-                            "Resultados da Busca",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: Colors.cyan,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            "${_getAnimaisFiltrados().length} animal(es) encontrado(s)",
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          setState(() {});
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.cyan,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          "APLICAR FILTROS",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _limparFiltros() {
-    setState(() {
-      _filtroTipo = 'Todos';
-      _filtroEspecie = 'Todos';
-      _filtroCidade = 'Todas';
-      _filtroRaca = 'Todas';
-      _filtroCor = 'Todas';
-    });
-  }
-
-  void _removerFiltro(String tipo) {
-    setState(() {
-      switch (tipo) {
-        case 'Tipo':
-          _filtroTipo = 'Todos';
-          break;
-        case 'Espécie':
-          _filtroEspecie = 'Todos';
-          break;
-        case 'Cidade':
-          _filtroCidade = 'Todas';
-          break;
-        case 'Raça':
-          _filtroRaca = 'Todas';
-          break;
-        case 'Cor':
-          _filtroCor = 'Todas';
-          break;
-      }
-    });
-  }
-
-  Widget _buildFiltroSection(String titulo, Widget content) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          titulo,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-            color: Colors.cyan,
-          ),
-        ),
-        const SizedBox(height: 8),
-        content,
-      ],
-    );
-  }
-
-  Widget _buildDropdownFiltro({
-    required String value,
-    required List<String> items,
-    required Function(String?) onChanged,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: DropdownButton<String>(
-        value: value,
-        isExpanded: true,
-        underline: const SizedBox(),
-        items: items.map((String value) {
-          return DropdownMenuItem<String>(value: value, child: Text(value));
-        }).toList(),
-        onChanged: onChanged,
+      builder: (context) => GerenciadorFiltros.criarModalFiltros(
+        context: context,
+        gerenciador: gerenciadorFiltros,
+        onAplicarFiltros: () {
+          setState(() {}); // Atualiza a UI
+        },
+        totalAnimais: animaisPerdidos.length + animaisEncontrados.length,
       ),
     );
   }
@@ -528,41 +208,57 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
         children: [
           _buildHeaderFiltros(),
           Expanded(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.search_off, size: 80, color: Colors.grey[400]),
-                  const SizedBox(height: 16),
-                  const Text(
-                    "Nenhum animal encontrado",
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey,
-                      fontWeight: FontWeight.w500,
+            child: RefreshIndicator(
+              onRefresh: () async {
+                _atualizarTela();
+                await Future.delayed(const Duration(seconds: 1));
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.7,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.search_off,
+                          size: 80,
+                          color: Colors.grey[400],
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          "Nenhum animal encontrado",
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          "Tente ajustar os filtros ou cadastrar um novo animal",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton.icon(
+                          onPressed: mostrarPopupCadastro,
+                          icon: const Icon(Icons.add),
+                          label: const Text("Cadastrar Animal"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.cyan,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    "Tente ajustar os filtros ou cadastrar um novo animal",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton.icon(
-                    onPressed: mostrarPopupCadastro,
-                    icon: const Icon(Icons.add),
-                    label: const Text("Cadastrar Animal"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.cyan,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
@@ -774,15 +470,9 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
     );
   }
 
+  // ✅ HEADER DE FILTROS SIMPLIFICADO
   Widget _buildHeaderFiltros() {
-    final temFiltrosAtivos =
-        _filtroTipo != 'Todos' ||
-        _filtroEspecie != 'Todos' ||
-        _filtroCidade != 'Todas' ||
-        _filtroRaca != 'Todas' ||
-        _filtroCor != 'Todas';
-
-    if (!temFiltrosAtivos) {
+    if (!gerenciadorFiltros.temFiltrosAtivos) {
       return const SizedBox.shrink();
     }
 
@@ -809,56 +499,65 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
             ],
           ),
           const SizedBox(height: 8),
-          Wrap(spacing: 8, runSpacing: 4, children: _buildChipsFiltros()),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: gerenciadorFiltros.filtrosAtivos.map((filtro) {
+              return Chip(
+                label: Text(
+                  "${filtro['tipo']}: ${filtro['valor']}",
+                  style: const TextStyle(fontSize: 12, color: Colors.white),
+                ),
+                backgroundColor: filtro['cor'],
+                deleteIcon: const Icon(
+                  Icons.close,
+                  size: 16,
+                  color: Colors.white,
+                ),
+                onDeleted: () {
+                  gerenciadorFiltros.removerFiltro(filtro['tipo']);
+                  setState(() {});
+                },
+              );
+            }).toList(),
+          ),
         ],
       ),
     );
   }
 
-  List<Widget> _buildChipsFiltros() {
-    final chips = <Widget>[];
-
-    if (_filtroTipo != 'Todos') {
-      chips.add(_buildChipFiltro('Tipo: $_filtroTipo', Colors.blue, 'Tipo'));
-    }
-    if (_filtroEspecie != 'Todos') {
-      chips.add(
-        _buildChipFiltro('Espécie: $_filtroEspecie', Colors.green, 'Espécie'),
-      );
-    }
-    if (_filtroCidade != 'Todas') {
-      chips.add(
-        _buildChipFiltro('Cidade: $_filtroCidade', Colors.orange, 'Cidade'),
-      );
-    }
-    if (_filtroRaca != 'Todas') {
-      chips.add(_buildChipFiltro('Raça: $_filtroRaca', Colors.purple, 'Raça'));
-    }
-    if (_filtroCor != 'Todas') {
-      chips.add(_buildChipFiltro('Cor: $_filtroCor', Colors.red, 'Cor'));
-    }
-
-    return chips;
-  }
-
-  Widget _buildChipFiltro(String label, Color color, String tipoFiltro) {
-    return Chip(
-      label: Text(
-        label,
-        style: const TextStyle(fontSize: 12, color: Colors.white),
-      ),
-      backgroundColor: color,
-      deleteIcon: const Icon(Icons.close, size: 16, color: Colors.white),
-      onDeleted: () {
-        _removerFiltro(tipoFiltro);
-      },
-    );
-  }
-
+  // ✅ MÉTODO CORRIGIDO PARA IMAGENS
   Widget _construirImagemAnimal(Animal animal) {
     if (animal.imagens.isNotEmpty) {
       final primeiraImagem = animal.imagens[0];
-      if (primeiraImagem.startsWith('assets/')) {
+
+      if (primeiraImagem.startsWith('http')) {
+        // ✅ IMAGENS DA INTERNET (Laravel)
+        return Image.network(
+          primeiraImagem,
+          width: 100,
+          height: 100,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Container(
+              color: Colors.grey[200],
+              child: Center(
+                child: CircularProgressIndicator(
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded /
+                            loadingProgress.expectedTotalBytes!
+                      : null,
+                ),
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            return _construirPlaceholderImagem();
+          },
+        );
+      } else if (primeiraImagem.startsWith('assets/')) {
+        // ✅ IMAGENS LOCAIS (assets)
         return Image.asset(
           primeiraImagem,
           width: 100,
@@ -869,6 +568,7 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
           },
         );
       } else {
+        // ✅ ARQUIVOS LOCAIS (File)
         return Image.file(
           File(primeiraImagem),
           width: 100,
@@ -1096,11 +796,16 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
     );
   }
 
+  // ✅ CORRIGIDO: "Meus Casos" agora filtra apenas os animais do usuário logado
   void _mostrarMeusCasos() async {
     final usuario = _authService.usuarioLogado;
-    if (usuario == null) return;
+    if (usuario == null) {
+      _mostrarMensagem('Usuário não logado');
+      return;
+    }
 
     try {
+      // ✅ CORREÇÃO: Busca apenas os animais do usuário logado
       final meusAnimais = await AnimalService.meusAnimais(usuario.id);
 
       showDialog(
@@ -1487,6 +1192,7 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
     );
   }
 
+  // ✅ CORRIGIDO: Logout agora limpa tudo corretamente
   void _confirmarLogout(BuildContext context) {
     showDialog(
       context: context,
@@ -1528,12 +1234,11 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
               tooltip: "Filtros",
               onPressed: _mostrarFiltros,
             ),
-            if ((animaisPerdidos.isNotEmpty || animaisEncontrados.isNotEmpty))
-              IconButton(
-                icon: const Icon(Icons.add),
-                tooltip: "Cadastrar Animal",
-                onPressed: mostrarPopupCadastro,
-              ),
+            IconButton(
+              icon: const Icon(Icons.add),
+              tooltip: "Cadastrar Animal",
+              onPressed: mostrarPopupCadastro,
+            ),
           ],
         ],
       ),
@@ -1555,9 +1260,7 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
         showUnselectedLabels: true,
         type: BottomNavigationBarType.fixed,
       ),
-      floatingActionButton:
-          _indiceSelecionado == 0 &&
-              (animaisPerdidos.isEmpty && animaisEncontrados.isEmpty)
+      floatingActionButton: _indiceSelecionado == 0
           ? FloatingActionButton(
               onPressed: mostrarPopupCadastro,
               backgroundColor: Colors.cyan,

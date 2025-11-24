@@ -7,24 +7,22 @@ use Illuminate\View\Component;
 
 class Listagem extends Component
 {
-    public $animais;
-    public $info;
+    public $informacoes;
+    public $usuario;
+    public $showActions;
     
     /**
      * Create a new component instance.
-     *
-     * @return void
      */
-    public function __construct(Collection $animais, int $info)
+    public function __construct(Collection $informacoes, bool $usuario = false, bool $showActions = false)
     {
-        $this->animais = $animais;
-        $this->info = $info;
+        $this->informacoes = $informacoes;
+        $this->usuario = $usuario;
+        $this->showActions = $showActions;
     }
 
     /**
      * Get the view / contents that represent the component.
-     *
-     * @return \Illuminate\Contracts\View\View|\Closure|string
      */
     public function render()
     {
