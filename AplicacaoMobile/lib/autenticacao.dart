@@ -276,7 +276,7 @@ class AuthService {
     }
   }
 
-  // ✅ MÉTODO VERIFICARLOGIN CORRIGIDO
+  // ✅ MÉTODO VERIFICARLOGIN CORRIGIDO - VERSÃO SIMPLIFICADA
   Future<bool> verificarLogin() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -284,58 +284,51 @@ class AuthService {
 
       print('🔍 Verificando login salvo...');
       print('   - Chave: $_storageKey');
-      print('   - Usuário JSON: $usuarioJson');
+      print('   - Usuário JSON existe: ${usuarioJson != null}');
 
-      if (usuarioJson != null && usuarioJson.isNotEmpty) {
-        try {
-          // ✅ DEBUG: Ver estrutura do JSON
-          print('   - Tipo do JSON: ${usuarioJson.runtimeType}');
-          print(
-            '   - Primeiros 200 chars: ${usuarioJson.length > 200 ? usuarioJson.substring(0, 200) + "..." : usuarioJson}',
-          );
+      if (usuarioJson == null || usuarioJson.isEmpty) {
+        print('❌ Nenhum usuário salvo encontrado');
+        return false;
+      }
 
-          // ✅ CORREÇÃO: Parse seguro do JSON
-          final Map<String, dynamic> usuarioMap = json.decode(usuarioJson);
-          print('   - JSON decodificado tipo: ${usuarioMap.runtimeType}');
-          print('   - Keys do map: ${usuarioMap.keys}');
+      try {
+        // ✅ CORREÇÃO: Parse seguro do JSON
+        final Map<String, dynamic> usuarioMap = json.decode(usuarioJson);
+        print('   - JSON decodificado com sucesso');
+        print('   - Keys do map: ${usuarioMap.keys}');
 
-          final usuario = Usuario.fromMap(usuarioMap);
+        // ✅ CORREÇÃO: Usa o mesmo método fromMap que já funciona
+        final usuario = Usuario.fromMap(usuarioMap);
 
-          // ✅ CORREÇÃO: Verificação mais robusta
-          if (usuario.id.isEmpty || usuario.email.isEmpty) {
-            print('⚠️ Usuário inválido - campos obrigatórios faltando');
-            print('   - ID: "${usuario.id}"');
-            print('   - Email: "${usuario.email}"');
-            await _limparUsuarioSalvo();
-            return false;
-          }
-
-          if (usuario.banido) {
-            print('⚠️ Usuário banido detectado no login salvo');
-            await _limparUsuarioSalvo();
-            return false;
-          }
-
-          _usuarioLogado = usuario;
-          print('✅ Usuário carregado com sucesso: ${usuario.nome}');
-          print('   - ID: ${usuario.id}');
-          print('   - Email: ${usuario.email}');
-          print('   - Banido: ${usuario.banido}');
-          return true;
-        } catch (e) {
-          print('❌ Erro ao decodificar usuário: $e');
-          print('❌ StackTrace: ${e.toString()}');
-          print('❌ JSON problemático: $usuarioJson');
+        // ✅ Verificação básica dos campos obrigatórios
+        if (usuario.id.isEmpty || usuario.email.isEmpty) {
+          print('⚠️ Usuário inválido - campos obrigatórios faltando');
+          print('   - ID: "${usuario.id}"');
+          print('   - Email: "${usuario.email}"');
           await _limparUsuarioSalvo();
           return false;
         }
-      } else {
-        print('❌ Nenhum usuário salvo encontrado');
+
+        if (usuario.banido) {
+          print('⚠️ Usuário banido detectado no login salvo');
+          await _limparUsuarioSalvo();
+          return false;
+        }
+
+        _usuarioLogado = usuario;
+        print('✅ Usuário carregado com sucesso: ${usuario.nome}');
+        print('   - ID: ${usuario.id}');
+        print('   - Email: ${usuario.email}');
+        print('   - Banido: ${usuario.banido}');
+        return true;
+      } catch (e) {
+        print('❌ Erro ao decodificar usuário: $e');
+        print('❌ JSON problemático: $usuarioJson');
+        await _limparUsuarioSalvo();
         return false;
       }
     } catch (e) {
       print('❌ Erro ao verificar login: $e');
-      print('❌ StackTrace: ${e.toString()}');
       return false;
     }
   }

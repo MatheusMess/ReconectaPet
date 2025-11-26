@@ -29,7 +29,6 @@ class _TelaLoginState extends State<TelaLogin> {
   // ✅ CORREÇÃO: Inicializa na ordem correta
   void _inicializarLogin() async {
     await _carregarPreferencias();
-    // ignore: await_only_futures
     await _verificarLoginAutomatico();
   }
 
@@ -119,11 +118,20 @@ class _TelaLoginState extends State<TelaLogin> {
       if (sucesso) {
         print('✅ Login manual bem-sucedido!');
 
-        // ✅ CORREÇÃO: Usa o método do AuthService para salvar preferências
-        await _authService.salvarPreferenciasLogin(
-          manterConectado: _manterConectado,
-          email: _emailController.text.trim(),
-        );
+        // ✅ CORREÇÃO: Salva as preferências localmente também
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('manter_conectado', _manterConectado);
+        await prefs.setBool('usuario_logado', _manterConectado);
+
+        if (_manterConectado) {
+          await prefs.setString('ultimo_email', _emailController.text.trim());
+        } else {
+          await prefs.remove('ultimo_email');
+        }
+
+        print('💾 Preferências salvas:');
+        print('   - Manter conectado: $_manterConectado');
+        print('   - Email: ${_emailController.text.trim()}');
 
         _mostrarSucesso('Login realizado com sucesso!');
         await Future.delayed(const Duration(seconds: 1));
@@ -135,7 +143,8 @@ class _TelaLoginState extends State<TelaLogin> {
         _mostrarErro('Email ou senha incorretos');
       }
     } catch (e) {
-      _mostrarErro('Erro ao fazer login: $e');
+      String mensagemErro = e.toString().replaceAll('Exception: ', '');
+      _mostrarErro(mensagemErro);
     } finally {
       if (mounted) {
         setState(() {
@@ -233,7 +242,7 @@ class _TelaLoginState extends State<TelaLogin> {
                     _campoSenha("Senha", Icons.lock, _senhaController),
                     const SizedBox(height: 10),
 
-                    // Checkbox "Manter conectado"
+                    // ✅ CORREÇÃO: Checkbox "Manter conectado" funcional
                     if (!_verificandoLoginAuto)
                       Row(
                         children: [
@@ -355,15 +364,6 @@ class _TelaLoginState extends State<TelaLogin> {
           ),
           style: const TextStyle(color: Colors.white),
           keyboardType: TextInputType.emailAddress,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Email é obrigatório';
-            }
-            if (!value.contains('@') || !value.contains('.')) {
-              return 'Email inválido';
-            }
-            return null;
-          },
         ),
       ),
     );
@@ -404,15 +404,6 @@ class _TelaLoginState extends State<TelaLogin> {
             ),
           ),
           style: const TextStyle(color: Colors.white),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Senha é obrigatória';
-            }
-            if (value.length < 6) {
-              return 'Senha deve ter pelo menos 6 caracteres';
-            }
-            return null;
-          },
         ),
       ),
     );

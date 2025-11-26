@@ -805,8 +805,13 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
     }
 
     try {
-      // ✅ CORREÇÃO: Busca apenas os animais do usuário logado
-      final meusAnimais = await AnimalService.meusAnimais(usuario.id);
+      // ✅ BUSCA TODOS OS ANIMAIS E FILTRA PELO ID DO USUÁRIO
+      final todosAnimais = await AnimalService.buscarAnimais();
+
+      // ✅ FILTRA APENAS OS ANIMAIS DO USUÁRIO LOGADO
+      final meusAnimais = todosAnimais
+          .where((animal) => animal.donoId == usuario.id)
+          .toList();
 
       showDialog(
         context: context,
