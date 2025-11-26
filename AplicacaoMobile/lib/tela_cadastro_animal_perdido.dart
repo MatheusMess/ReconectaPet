@@ -35,7 +35,8 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
   final ImagePicker picker = ImagePicker();
 
   bool _salvando = false;
-  bool _bloquearBotao = false; // ✅ Previne duplo clique
+  bool _bloquearBotao = false;
+  DateTime? _ultimoClique;
 
   Future<void> adicionarFoto({bool isPrincipal = false}) async {
     final XFile? pickedFile = await picker.pickImage(
@@ -111,13 +112,19 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
   }
 
   Future<void> salvarAnimal() async {
-    // ✅ CORREÇÃO: Impede duplo clique
+    final agora = DateTime.now();
+    if (_ultimoClique != null &&
+        agora.difference(_ultimoClique!) < Duration(seconds: 3)) {
+      print('⏳ Clique muito rápido, ignorando...');
+      return;
+    }
+    _ultimoClique = agora;
+
     if (_salvando || _bloquearBotao) {
       print('⏳ Cadastro já em andamento, ignorando clique...');
       return;
     }
 
-    // Validar campos obrigatórios
     if (nomeController.text.isEmpty ||
         racaController.text.isEmpty ||
         cores.isEmpty ||
@@ -138,7 +145,6 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
       return;
     }
 
-    // Validar foto principal
     if (fotoPrincipal == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -149,7 +155,6 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
       return;
     }
 
-    // ✅ BLOQUEIA BOTÃO IMEDIATAMENTE
     setState(() {
       _salvando = true;
       _bloquearBotao = true;
@@ -158,13 +163,11 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
     print('🔄 INICIANDO CADASTRO ANIMAL PERDIDO...');
 
     try {
-      // Obter usuário logado
       final usuarioLogado = AuthService().usuarioLogado;
       if (usuarioLogado == null) {
         throw Exception('Usuário não está logado');
       }
 
-      // Preparar imagens para upload - ✅ CORREÇÃO: Verifica se arquivos existem
       final List<File> imagensParaUpload = [];
       if (fotoPrincipal != null) {
         final file = File(fotoPrincipal!.path);
@@ -186,7 +189,6 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
 
       print('📦 Total de imagens para upload: ${imagensParaUpload.length}');
 
-      // Criar animal com status PENDENTE para aprovação
       final animal = Animal(
         nome: nomeController.text,
         descricao: observacoesController.text,
@@ -194,18 +196,15 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
         cor: cores.join(", "),
         especie: especieSelecionada!,
         sexo: sexoSelecionado!,
-        imagens: [], // Será preenchido pela API após upload
+        imagens: [],
         cidade: cidadeController.text,
         bairro: bairroController.text,
         donoId: usuarioLogado.id,
-        // CAMPOS ESPECÍFICOS PARA ANIMAL PERDIDO
         ultimoLocalVisto: ultimoLocalController.text,
         enderecoDesaparecimento: enderecoController.text,
         dataDesaparecimento: dataDesaparecimentoController.text,
-        // Identificar como animal perdido
         tipo: 'perdido',
-        ativo: false, // Inativo até ser aprovado
-        // Campos de usuário para exibição
+        ativo: false,
         userNome: usuarioLogado.nome,
         userTelefone: usuarioLogado.telefone,
         userEmail: usuarioLogado.email,
@@ -213,7 +212,6 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
 
       print('🚀 ENVIANDO PARA API...');
 
-      // ✅ ENVIAR PARA API LARAVEL COM STATUS PENDENTE
       final animalSalvo = await AnimalApiService.cadastrarAnimalPerdido(
         animal: animal,
         imagens: imagensParaUpload,
@@ -221,59 +219,54 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
 
       print('✅ ANIMAL PERDIDO CADASTRADO COM SUCESSO! ID: ${animalSalvo.id}');
 
-      // Mostrar mensagem de sucesso
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '✅ Animal enviado para aprovação!',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 4),
-              Text('Aguarde a análise do administrador.'),
-            ],
-          ),
-          backgroundColor: Colors.red[700],
-          duration: const Duration(seconds: 5),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-
-      // Chamar callback se existir
-      widget.onSalvar?.call(animalSalvo);
-
-      // Voltar para tela anterior após 2 segundos
-      await Future.delayed(const Duration(seconds: 2));
-
       if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '✅ Animal enviado para aprovação!',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 4),
+                Text('Aguarde a análise do administrador.'),
+              ],
+            ),
+            backgroundColor: Colors.red[700],
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+
+        widget.onSalvar?.call(animalSalvo);
         Navigator.pop(context);
       }
     } catch (e) {
       print('❌ ERRO NO CADASTRO: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                '❌ Erro ao enviar animal',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
-              Text(e.toString().replaceAll('Exception: ', '')),
-            ],
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '❌ Erro ao enviar animal',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Text(e.toString().replaceAll('Exception: ', '')),
+              ],
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+            behavior: SnackBarBehavior.floating,
           ),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 5),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+        );
+      }
     } finally {
-      // ✅ LIBERA BOTÃO APÓS CONCLUSÃO (sucesso ou erro)
       if (mounted) {
         setState(() {
           _salvando = false;
@@ -282,6 +275,11 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
       }
       print('🏁 PROCESSO FINALIZADO - Botão liberado');
     }
+  }
+
+  void _onSalvarPressed() {
+    if (_salvando || _bloquearBotao) return;
+    salvarAnimal();
   }
 
   @override
@@ -317,50 +315,33 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Título da seção
                 _buildSectionTitle("ANIMAL PERDIDO - PROCURA-SE"),
-
-                // Informação sobre aprovação
                 _buildInfoAprovacao(),
                 const SizedBox(height: 20),
-
-                // FOTO PRINCIPAL
                 _buildSectionTitle("Foto Principal *", fontSize: 14),
                 const SizedBox(height: 8),
                 _buildFotoPrincipal(),
                 const SizedBox(height: 20),
-
-                // FOTOS EXTRAS (MÁXIMO 3)
                 _buildSectionTitle("Fotos Extras (opcional)", fontSize: 14),
                 const SizedBox(height: 8),
                 _buildFotosExtras(),
                 const SizedBox(height: 20),
-
-                // DADOS DO ANIMAL
                 _buildSectionTitle("Dados do Animal Perdido", fontSize: 14),
                 const SizedBox(height: 12),
-
-                // Nome
                 _buildTextField(
                   controller: nomeController,
                   label: "Nome do animal *",
                   hint: "Ex: Rex, Luna, Bob",
                 ),
                 const SizedBox(height: 16),
-
-                // Raça
                 _buildTextField(
                   controller: racaController,
                   label: "Raça do animal *",
                   hint: "Ex: Labrador, Siamesa, SRD",
                 ),
                 const SizedBox(height: 16),
-
-                // Cores
                 _buildCorField(),
                 const SizedBox(height: 16),
-
-                // Espécie
                 _buildDropdown(
                   value: especieSelecionada,
                   hint: "Espécie *",
@@ -369,8 +350,6 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
                       setState(() => especieSelecionada = value),
                 ),
                 const SizedBox(height: 16),
-
-                // Sexo
                 _buildDropdown(
                   value: sexoSelecionado,
                   hint: "Sexo *",
@@ -378,61 +357,43 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
                   onChanged: (value) => setState(() => sexoSelecionado = value),
                 ),
                 const SizedBox(height: 20),
-
-                // LOCAL DO DESAPARECIMENTO
                 _buildSectionTitle("Local do Desaparecimento", fontSize: 14),
                 const SizedBox(height: 12),
-
-                // Último local visto
                 _buildTextField(
                   controller: ultimoLocalController,
                   label: "Último local visto *",
                   hint: "Ex: Parque Central, Praça da Matriz, Rua...",
                 ),
                 const SizedBox(height: 16),
-
-                // Cidade
                 _buildTextField(
                   controller: cidadeController,
                   label: "Cidade *",
                   hint: "Ex: São Paulo, Rio de Janeiro",
                 ),
                 const SizedBox(height: 16),
-
-                // Bairro
                 _buildTextField(
                   controller: bairroController,
                   label: "Bairro *",
                   hint: "Ex: Centro, Jardins, Copacabana",
                 ),
                 const SizedBox(height: 16),
-
-                // Endereço aproximado
                 _buildTextField(
                   controller: enderecoController,
                   label: "Endereço aproximado *",
                   hint: "Ex: Rua das Flores, 123",
                 ),
                 const SizedBox(height: 16),
-
-                // Data do desaparecimento
                 _buildDateField(),
                 const SizedBox(height: 20),
-
-                // OBSERVAÇÕES
                 _buildSectionTitle("Observações Importantes", fontSize: 14),
                 const SizedBox(height: 8),
                 _buildObservacoesField(),
                 const SizedBox(height: 30),
-
-                // BOTÃO SALVAR
                 _buildSaveButton(),
                 const SizedBox(height: 20),
               ],
             ),
           ),
-
-          // Loading overlay
           if (_salvando)
             Container(
               color: Colors.black54,
@@ -835,7 +796,7 @@ class _TelaCadastroAnimalPerdidoState extends State<TelaCadastroAnimalPerdido> {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: (_salvando || _bloquearBotao) ? null : salvarAnimal,
+            onPressed: (_salvando || _bloquearBotao) ? null : _onSalvarPressed,
             style: ElevatedButton.styleFrom(
               backgroundColor: (_salvando || _bloquearBotao)
                   ? Colors.grey
